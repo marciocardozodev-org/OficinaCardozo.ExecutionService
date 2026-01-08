@@ -5,7 +5,7 @@ metadata:
   labels:
     app: oficina-cardozo-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: oficina-cardozo-api
