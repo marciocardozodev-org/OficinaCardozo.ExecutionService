@@ -10,7 +10,7 @@ data:
   # Connection string de produção (usar RDS). Exemplo:
   # ConnectionStrings__DefaultConnection: "Host=<host-rds>;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=<senha>"
   # Aqui deixamos em branco para ser preenchido por ambiente:
-  ConnectionStrings__DefaultConnection: "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficina-cardozo-db;Username=dbadmin;Password=Z@4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
+  ConnectionStrings__DefaultConnection: "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficina-cardozo-db;Username=dbadmin;Password=lsGiy6-g_d6Lh,.p;Ssl Mode=Require;Trust Server Certificate=true;"
   ConfiguracoesEmail__Host: "imap.gmail.com"
   ConfiguracoesEmail__PortaImap: "993"
   ConfiguracoesEmail__PortaSmtp: "587"
