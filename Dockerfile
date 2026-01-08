@@ -1,5 +1,5 @@
 # ===================================================================
-# Dockerfile - Oficina Cardozo API (.NET 8) - AWS Lambda
+# Dockerfile - Oficina Cardozo API (.NET 8) - Web/Kubernetes
 # OTIMIZADO PARA CACHE
 # ===================================================================
 
@@ -35,14 +35,18 @@ RUN dotnet publish "OficinaCardozo.API/OficinaCardozo.API.csproj" \
     --verbosity minimal \
     /p:UseAppHost=false
 
-# Stage 2: Lambda Runtime
-FROM public.ecr.aws/lambda/dotnet:8 AS final
+# Stage 2: ASP.NET Runtime (Kestrel)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+WORKDIR /app
 
 # Copiar publicação do build
-COPY --from=build /app/publish ${LAMBDA_TASK_ROOT}
+COPY --from=build /app/publish .
 
-# Configurar variáveis de ambiente para Lambda
+# Configurar variáveis de ambiente para API web
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
 
-# TESTE: Handler usando classe simples
-CMD ["OficinaCardozo.API::OficinaCardozo.API.LambdaEntryPointSimple::FunctionHandlerAsync"]
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "OficinaCardozo.API.dll"]
