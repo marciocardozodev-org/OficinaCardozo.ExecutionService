@@ -34,13 +34,13 @@ spec:
               memory: "512Mi"
           readinessProbe:
             httpGet:
-              path: "/"
+              path: "/swagger/index.html"
               port: 8080
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: "/"
+              path: "/swagger/index.html"
               port: 8080
             initialDelaySeconds: 40
             periodSeconds: 20
