@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "/qpOsCt6BxgYwM+A81F18gy0nE+7aq7WZExWInrbnpXU2s/4d2tMLrHfVyvkH7TqlU0QLMAnAK+ct/NntiAG8A==",
+  "dgSpecHash": "/c3JueN40YZjqnxEbt3GRj0atcPWzD4jFhiAqCKd53Vkk/kaTTPnuF3RtbJ8G+8gT1AfErWl+4KKtl13IbKClA==",
   "success": true,
-  "projectFilePath": "/workspaces/OficinaCardozo/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj",
+  "projectFilePath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

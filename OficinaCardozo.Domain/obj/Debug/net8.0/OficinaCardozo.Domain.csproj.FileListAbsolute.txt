@@ -10,3 +10,15 @@
 /workspaces/OficinaCardozo/OficinaCardozo.Domain/obj/Debug/net8.0/refint/OficinaCardozo.Domain.dll
 /workspaces/OficinaCardozo/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.pdb
 /workspaces/OficinaCardozo/OficinaCardozo.Domain/obj/Debug/net8.0/ref/OficinaCardozo.Domain.dll
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/bin/Debug/net8.0/OficinaCardozo.Domain.deps.json
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/bin/Debug/net8.0/OficinaCardozo.Domain.dll
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/bin/Debug/net8.0/OficinaCardozo.Domain.pdb
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.AssemblyInfoInputs.cache
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.AssemblyInfo.cs
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.csproj.CoreCompileInputs.cache
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.sourcelink.json
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.dll
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/refint/OficinaCardozo.Domain.dll
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/OficinaCardozo.Domain.pdb
+/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/obj/Debug/net8.0/ref/OficinaCardozo.Domain.dll

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mm9RwPFIkCsLBPfsRYAXc/PGuVWddm0cZVexb75vDWBmTS1jMa+lMIE/wW49evoHYcHBWsLDAXxN4C3VdBHCqQ==",
+  "dgSpecHash": "8TSj9Mv71VaSRQ4Cc8tYayDmCW4OmTU2Z7mhbxCnJOgoS2w+f+o4nl8p/HBiBxaDTbOZu5thAWCDFul1UXQ+PQ==",
   "success": true,
-  "projectFilePath": "/workspaces/OficinaCardozo/OficinaCardozo.Tests/OficinaCardozo.Tests.csproj",
+  "projectFilePath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Tests/OficinaCardozo.Tests.csproj",
   "expectedPackageFiles": [
     "/home/vscode/.nuget/packages/amazon.lambda.apigatewayevents/2.7.0/amazon.lambda.apigatewayevents.2.7.0.nupkg.sha512",
     "/home/vscode/.nuget/packages/amazon.lambda.applicationloadbalancerevents/2.2.0/amazon.lambda.applicationloadbalancerevents.2.2.0.nupkg.sha512",

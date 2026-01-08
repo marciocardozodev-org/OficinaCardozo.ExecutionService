@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7B8y24g485O0g9XHFR2awawqhD0872xmsQV+Fs0+NTaVLTP0/GFCsWBXbMo/NY/zpCRF34fQoq2GhlOGuLbgVw==",
+  "dgSpecHash": "BvE3R2HI0EdlUuGYl3hOgn6JIxV5wI02tLjTeHCNam09zXb+umY6YfDQGem7r8HEfCkj/na2z1qICy/qZwErDA==",
   "success": true,
-  "projectFilePath": "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
+  "projectFilePath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/vscode/.nuget/packages/azure.core/1.38.0/azure.core.1.38.0.nupkg.sha512",
     "/home/vscode/.nuget/packages/azure.identity/1.11.4/azure.identity.1.11.4.nupkg.sha512",

@@ -3572,11 +3572,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
+      "projectUniqueName": "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
       "projectName": "OficinaCardozo.Infrastructure",
-      "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
+      "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj",
       "packagesPath": "/home/vscode/.nuget/packages/",
-      "outputPath": "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/obj/",
+      "outputPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/vscode/.nuget/NuGet/NuGet.Config"
@@ -3591,8 +3591,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/workspaces/OficinaCardozo/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj": {
-              "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj"
+            "/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj": {
+              "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj"
             }
           }
         }

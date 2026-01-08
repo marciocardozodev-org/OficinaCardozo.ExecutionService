@@ -5609,11 +5609,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/OficinaCardozo/OficinaCardozo.API/OficinaCardozo.API.csproj",
+      "projectUniqueName": "/workspaces/OficinaCardozo.App/OficinaCardozo.API/OficinaCardozo.API.csproj",
       "projectName": "OficinaCardozo.API",
-      "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.API/OficinaCardozo.API.csproj",
+      "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.API/OficinaCardozo.API.csproj",
       "packagesPath": "/home/vscode/.nuget/packages/",
-      "outputPath": "/workspaces/OficinaCardozo/OficinaCardozo.API/obj/",
+      "outputPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.API/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/vscode/.nuget/NuGet/NuGet.Config"
@@ -5628,14 +5628,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/workspaces/OficinaCardozo/OficinaCardozo.Application/OficinaCardozo.Application.csproj": {
-              "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.Application/OficinaCardozo.Application.csproj"
+            "/workspaces/OficinaCardozo.App/OficinaCardozo.Application/OficinaCardozo.Application.csproj": {
+              "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Application/OficinaCardozo.Application.csproj"
             },
-            "/workspaces/OficinaCardozo/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj": {
-              "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj"
+            "/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj": {
+              "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Domain/OficinaCardozo.Domain.csproj"
             },
-            "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj": {
-              "projectPath": "/workspaces/OficinaCardozo/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj"
+            "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj": {
+              "projectPath": "/workspaces/OficinaCardozo.App/OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj"
             }
           }
         }
