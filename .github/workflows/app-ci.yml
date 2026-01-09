@@ -9,12 +9,7 @@ on:
 
 env:
   DOTNET_VERSION: 8.0.x
-<<<<<<< HEAD
-  DOCKER_IMAGE: marciocardozodev/oficinacardozo-api-web
-  IMAGE_TAG: ${{ github.sha }}
-=======
   DOCKER_IMAGE: marciocardozodev/oficinacardozo-api
->>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
 
 jobs:
   build-test-deploy:
@@ -27,18 +22,6 @@ jobs:
       with:
         fetch-depth: 0
 
-<<<<<<< HEAD
-    - name: Exibir Dockerfile usado no build
-      run: cat Dockerfile
-
-    - name: Exibir entrypoint do Dockerfile
-      run: grep ENTRYPOINT Dockerfile
-
-    - name: Exibir arquivos publicados
-      run: ls -lh /app/publish || true
-
-=======
->>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
     - name: Set deployment flag
       run: |
         if [ "${GITHUB_EVENT_NAME}" = "push" ] && { [ "${GITHUB_REF}" = "refs/heads/homolog" ] || [ "${GITHUB_REF}" = "refs/heads/master" ]; }; then
@@ -60,7 +43,6 @@ jobs:
 
     - name: Restore, Build & Test
       run: |
-<<<<<<< HEAD
           dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj --verbosity minimal
           dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --verbosity minimal
           dotnet restore OficinaCardozo.Application/OficinaCardozo.Application.csproj --verbosity minimal
@@ -72,11 +54,6 @@ jobs:
           dotnet build OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --no-restore --configuration Release --verbosity minimal
           dotnet build OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-restore --configuration Release --verbosity minimal
           dotnet test OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
-=======
-        dotnet restore --verbosity minimal
-        dotnet build --no-restore --configuration Release --verbosity minimal
-        dotnet test --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
->>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
 
     - name: Docker login
       if: env.DEPLOY_ENABLED == 'true'
@@ -88,78 +65,6 @@ jobs:
     - name: Build and push Docker image
       if: env.DEPLOY_ENABLED == 'true'
       run: |
-<<<<<<< HEAD
-        docker build -t $DOCKER_IMAGE:$IMAGE_TAG -t $DOCKER_IMAGE:latest -f Dockerfile .
-        docker push $DOCKER_IMAGE:$IMAGE_TAG
-        docker push $DOCKER_IMAGE:latest
-
-
-
-    - name: Configure AWS credentials for EKS
-      if: env.DEPLOY_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: sa-east-1
-
-
-
-    - name: Baixar tfstate do S3
-      if: env.DEPLOY_ENABLED == 'true'
-      run: aws s3 cp s3://oficina-cardozo-terraform-state-sp/eks/prod/terraform.tfstate terraform.tfstate
-
-    - name: Gerar kubeconfig do EKS
-      if: env.DEPLOY_ENABLED == 'true'
-      run: |
-        export CLUSTER_NAME="oficina-cardozo-eks"
-        export AWS_REGION="sa-east-1"
-        aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
-
-    - name: Criar/atualizar ConfigMap do certificado
-      if: env.DEPLOY_ENABLED == 'true'
-      run: |
-        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
-          NAMESPACE="${K8S_NAMESPACE_PROD}"
-        else
-          NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
-        fi
-
-        kubectl -n "$NAMESPACE" create configmap cert-global-bundle-pe \
-          --from-file=global-bundle.pe=global-bundle.pe \
-          --dry-run=client -o yaml | kubectl -n "$NAMESPACE" apply -f -
-
-
-    
-
-
-
-    - name: Apply manifests to Kubernetes
-      if: env.DEPLOY_ENABLED == 'true'
-      run: |
-        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
-          NAMESPACE="${K8S_NAMESPACE_PROD}"
-        else
-          NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
-        fi
-
-        kubectl -n "$NAMESPACE" apply -f k8s/
-        kubectl -n "$NAMESPACE" set image deployment/oficina-cardozo-api \
-          api=$DOCKER_IMAGE:$IMAGE_TAG
-
-        echo '⏳ Aguardando rollout do deployment (timeout 180s)...'
-        if ! kubectl -n "$NAMESPACE" rollout status deployment/oficina-cardozo-api --timeout=180s; then
-          echo '❌ Rollout travado! Coletando diagnóstico...'
-          kubectl -n "$NAMESPACE" get pods -o wide || true
-          kubectl -n "$NAMESPACE" describe deployment/oficina-cardozo-api || true
-          kubectl -n "$NAMESPACE" get events --sort-by=.lastTimestamp | tail -20 || true
-          echo '⚠️  Se houver pods em Terminating, pode ser necessário forçar a deleção.'
-          exit 1
-        fi
-      env:
-        K8S_NAMESPACE_HOMOLOG: oficina-homolog
-        K8S_NAMESPACE_PROD: oficina-prod
-=======
         SHORT_SHA=${GITHUB_SHA::7}
         if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
           TAG="${SHORT_SHA}"
@@ -189,10 +94,10 @@ jobs:
     - name: Executar migrations EF Core no RDS
       if: env.DEPLOY_ENABLED == 'true'
       run: |
-        dotnet tool install --global dotnet-ef
-        export PATH="$PATH:/github/home/.dotnet/tools"
-        dotnet restore OficinaCardozo.App/OficinaCardozo.Infrastructure
-        dotnet restore OficinaCardozo.App/OficinaCardozo.API
+          dotnet tool install --global dotnet-ef --version 8.0.11
+          export PATH="$PATH:/home/vscode/.dotnet/tools"
+        dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj
+        dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj
         dotnet ef database update --project OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --startup-project OficinaCardozo.API/OficinaCardozo.API.csproj --connection "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
 
     - name: Apply manifests to Kubernetes
@@ -216,4 +121,3 @@ jobs:
       env:
         K8S_NAMESPACE_HOMOLOG: ${{ secrets.K8S_NAMESPACE_HOMOLOG }}
         K8S_NAMESPACE_PROD: ${{ secrets.K8S_NAMESPACE_PROD }}
->>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
