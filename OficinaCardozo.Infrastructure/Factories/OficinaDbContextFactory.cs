@@ -16,7 +16,6 @@ namespace OficinaCardozo.Infrastructure.Factories
         public OficinaDbContext CreateDbContext(string[] args)
         {
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-            Console.WriteLine($"[OficinaDbContextFactory] ENV: {environment}");
             string apiProjectPath = Environment.GetEnvironmentVariable("API_PROJECT_PATH")
                 ?? Path.Combine(Directory.GetCurrentDirectory(), "..", "OficinaCardozo.API");
             IConfigurationRoot configuration = new ConfigurationBuilder()
@@ -28,33 +27,25 @@ namespace OficinaCardozo.Infrastructure.Factories
                 .Build();
             var optionsBuilder = new DbContextOptionsBuilder<OficinaDbContext>();
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            Console.WriteLine($"[OficinaDbContextFactory] ENV: {environment}");
+            Console.WriteLine($"[OficinaDbContextFactory] API_PROJECT_PATH: {apiProjectPath}");
             Console.WriteLine($"[OficinaDbContextFactory] ConnectionString recebida: {connectionString}");
             Console.WriteLine($"[OficinaDbContextFactory] Teste Host= na connection string: {(!string.IsNullOrEmpty(connectionString) && (connectionString.Contains("Host=") || connectionString.Contains("host=")))}");
-            Console.WriteLine($"[OficinaDbContextFactory] API_PROJECT_PATH: {apiProjectPath}");
-            Console.WriteLine($"[OficinaDbContextFactory] Arquivos de configuração lidos:");
-            Console.WriteLine($"  - appsettings.json: {System.IO.File.Exists(System.IO.Path.Combine(apiProjectPath, "appsettings.json"))}");
-            Console.WriteLine($"  - appsettings.{environment}.json: {System.IO.File.Exists(System.IO.Path.Combine(apiProjectPath, $"appsettings.{environment}.json"))}");
-            Console.WriteLine($"  - appsettings.Production.json: {System.IO.File.Exists(System.IO.Path.Combine(apiProjectPath, "appsettings.Production.json"))}");
-            Console.WriteLine($"  - appsettings.Development.json: {System.IO.File.Exists(System.IO.Path.Combine(apiProjectPath, "appsettings.Development.json"))}");
-            Console.WriteLine($"[OficinaDbContextFactory] ConnectionString: {connectionString}");
-
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("A string de conex�o 'DefaultConnection' n�o foi encontrada.");
+                throw new InvalidOperationException("A string de conexão 'DefaultConnection' não foi encontrada.");
             }
-
             if (!string.IsNullOrEmpty(connectionString) && (connectionString.Contains("Host=") || connectionString.Contains("host=")))
             {
-                Console.WriteLine("[OficinaDbContextFactory] Configurando para PostgreSQL...");
+                Console.WriteLine("[OficinaDbContextFactory] PROVIDER: PostgreSQL");
                 optionsBuilder.UseNpgsql(connectionString,
                     npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(OficinaDbContext).Assembly.FullName));
             }
             else if (environment == "Development")
             {
-                Console.WriteLine("[OficinaDbContextFactory] Configurando para SQL Server...");
+                Console.WriteLine("[OficinaDbContextFactory] PROVIDER: SQL Server");
                 var userId = configuration["DatabaseCredentials:UserId"];
                 var password = configuration["DatabaseCredentials:Password"];
-
                 if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(password))
                 {
                     var csBuilder = new SqlConnectionStringBuilder(connectionString);
@@ -62,17 +53,15 @@ namespace OficinaCardozo.Infrastructure.Factories
                     csBuilder.Password = password;
                     connectionString = csBuilder.ConnectionString;
                 }
-
                 optionsBuilder.UseSqlServer(connectionString,
                     sqlOptions => sqlOptions.MigrationsAssembly(typeof(OficinaDbContext).Assembly.FullName));
             }
             else
             {
-                Console.WriteLine("[OficinaDbContextFactory] Configurando para SQLite...");
+                Console.WriteLine("[OficinaDbContextFactory] PROVIDER: SQLite");
                 optionsBuilder.UseSqlite(connectionString,
                     sqliteOptions => sqliteOptions.MigrationsAssembly(typeof(OficinaDbContext).Assembly.FullName));
             }
-
             return new OficinaDbContext(optionsBuilder.Options);
         }
     }
