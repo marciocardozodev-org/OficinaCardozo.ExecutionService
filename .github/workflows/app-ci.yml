@@ -99,6 +99,8 @@ jobs:
         dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj
         dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj
         dotnet ef database update --project OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --startup-project OficinaCardozo.API/OficinaCardozo.API.csproj --connection "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
+      env:
+        CONFIGURACOESJWT__CHAVESECRETA: "ZnE1b0h0b3pNQXpmdGRsa2RTc2IyN3dueVJkaWtvQ3dQazFFenU2WEdBSHB1bE93QmpHTlBnU0Q5TXl5SU5WODlRendCQzFyb0tFcFVTUldBTWQ3bDBNRlFhVjVpc25pVVBXNUt2RmUxVnZlQ2JHU29Eazk5N29UczJWMFAwbjI"
 
     - name: Apply manifests to Kubernetes
       if: env.DEPLOY_ENABLED == 'true'
