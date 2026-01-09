@@ -20,11 +20,11 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-            envFrom:
+          envFrom:
             - configMapRef:
-              name: oficina-cardozo-config
+                name: oficina-cardozo-config
             - secretRef:
-              name: oficina-cardozo-db-secret
+                name: oficina-cardozo-db-secret
           resources:
             requests:
               cpu: "100m"
