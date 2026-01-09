@@ -6,11 +6,6 @@ metadata:
     app: oficina-cardozo-api
 spec:
   replicas: 1
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
   selector:
     matchLabels:
       app: oficina-cardozo-api
@@ -18,23 +13,11 @@ spec:
     metadata:
       labels:
         app: oficina-cardozo-api
-      annotations:
-        
     spec:
       containers:
         - name: api
-          volumeMounts:
-            - name: cert-global-bundle-pe
-              mountPath: /certs
-              readOnly: true
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            
-          image: marciocardozodev/oficinacardozo-api-web:latest
-          imagePullPolicy: Always
+          image: marciocardozodev/oficinacardozo-api:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:
@@ -42,9 +25,6 @@ spec:
                 name: oficina-cardozo-config
             - secretRef:
                 name: oficina-cardozo-db-secret
-            - secretRef:
-                name: oficina-cardozo-secrets
-            
           resources:
             requests:
               cpu: "100m"
@@ -54,27 +34,16 @@ spec:
               memory: "512Mi"
           readinessProbe:
             httpGet:
-              path: "/Health/live"
+              path: "/swagger/index.html"
               port: 8080
-            initialDelaySeconds: 10
-            timeoutSeconds: 3
-            periodSeconds: 5
-            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: "/Health/live"
+              path: "/swagger/index.html"
               port: 8080
-            initialDelaySeconds: 30
-            timeoutSeconds: 3
-            periodSeconds: 10
-            failureThreshold: 5
-      volumes:
-        - name: cert-global-bundle-pe
-          configMap:
-            name: cert-global-bundle-pe
-            items:
-              - key: global-bundle.pe
-                path: global-bundle.pe
+            initialDelaySeconds: 120
+            periodSeconds: 20
 ---
 # Namespace é definido externamente pelo pipeline (K8S_NAMESPACE_*)
 # Este Deployment assume que secrets/configmaps de conexão (DB, JWT, Email) serão
