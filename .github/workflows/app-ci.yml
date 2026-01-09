@@ -43,9 +43,17 @@ jobs:
 
     - name: Restore, Build & Test
       run: |
-        dotnet restore --verbosity minimal
-        dotnet build --no-restore --configuration Release --verbosity minimal
-        dotnet test --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
+          dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Application/OficinaCardozo.Application.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --verbosity minimal
+          dotnet build OficinaCardozo.API/OficinaCardozo.API.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Application/OficinaCardozo.Application.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet test OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
 
     - name: Docker login
       if: env.DEPLOY_ENABLED == 'true'
@@ -88,8 +96,8 @@ jobs:
       run: |
         dotnet tool install --global dotnet-ef
         export PATH="$PATH:/github/home/.dotnet/tools"
-        dotnet restore OficinaCardozo.App/OficinaCardozo.Infrastructure
-        dotnet restore OficinaCardozo.App/OficinaCardozo.API
+        dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj
+        dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj
         dotnet ef database update --project OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --startup-project OficinaCardozo.API/OficinaCardozo.API.csproj --connection "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
 
     - name: Apply manifests to Kubernetes
