@@ -193,7 +193,7 @@ jobs:
         export PATH="$PATH:/github/home/.dotnet/tools"
         dotnet restore OficinaCardozo.App/OficinaCardozo.Infrastructure
         dotnet restore OficinaCardozo.App/OficinaCardozo.API
-        dotnet ef database update --project OficinaCardozo.App/OficinaCardozo.Infrastructure --startup-project OficinaCardozo.App/OficinaCardozo.API --connection "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
+        dotnet ef database update --project OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --startup-project OficinaCardozo.API/OficinaCardozo.API.csproj --connection "Host=oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com;Port=5432;Database=oficinacardozo;Username=dbadmin;Password=Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%;Ssl Mode=Require;Trust Server Certificate=true;"
 
     - name: Apply manifests to Kubernetes
       if: env.DEPLOY_ENABLED == 'true'
