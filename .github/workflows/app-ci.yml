@@ -94,6 +94,9 @@ jobs:
     - name: Executar migrations EF Core no RDS
       if: env.DEPLOY_ENABLED == 'true'
       run: |
+        sudo apt-get update && sudo apt-get install -y postgresql-client
+        export PGPASSWORD='Z4Zc7Xa5$&tz3mPMJ6qXPe#48szc5B%'
+        psql -h oficina-cardozo-db.celegsiik31m.us-east-1.rds.amazonaws.com -U dbadmin -d oficinacardozo -c '\l'
         dotnet tool install --global dotnet-ef --version 8.0.11
         export PATH="$PATH:/home/vscode/.dotnet/tools"
         dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj
