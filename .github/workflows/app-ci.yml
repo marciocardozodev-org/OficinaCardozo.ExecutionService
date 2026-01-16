@@ -1,13 +1,3 @@
-    - name: Garantir que o namespace existe
-      if: env.DEPLOY_ENABLED == 'true'
-      run: |
-        SHORT_SHA=${GITHUB_SHA::7}
-        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
-          NAMESPACE="oficina-prod"
-        else
-          NAMESPACE="oficina-homolog"
-        fi
-        kubectl get namespace "$NAMESPACE" || kubectl create namespace "$NAMESPACE"
 name: CI/CD - App Kubernetes
 
 on:
