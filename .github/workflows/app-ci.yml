@@ -1,3 +1,11 @@
+    - name: Exibir namespaces usados
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        echo "Namespace homolog: $K8S_NAMESPACE_HOMOLOG"
+        echo "Namespace prod: $K8S_NAMESPACE_PROD"
+      env:
+        K8S_NAMESPACE_HOMOLOG: ${{ secrets.K8S_NAMESPACE_HOMOLOG }}
+        K8S_NAMESPACE_PROD: ${{ secrets.K8S_NAMESPACE_PROD }}
 name: CI/CD - App Kubernetes
 
 on:
