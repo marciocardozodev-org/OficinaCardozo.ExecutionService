@@ -1,0 +1,15 @@
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
+metadata:
+  name: datadog-agent
+  namespace: default
+spec:
+  global:
+    site: datadoghq.com
+    credentials:
+      apiKey: 9828232f38e1bde8f73bafe1966e3bd9
+  features:
+    apm:
+      enabled: true
+    logCollection:
+      enabled: true

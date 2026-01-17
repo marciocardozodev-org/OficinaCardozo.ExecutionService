@@ -1,6 +1,8 @@
 ﻿using OficinaCardozo.Application.DTOs;
 using OficinaCardozo.Domain.Entities;
+
 using OficinaCardozo.Domain.Interfaces;
+using StatsdClient;
 
 namespace OficinaCardozo.Application.Services;
 
@@ -35,6 +37,7 @@ public interface IOrdemServicoService
 
 public class OrdemServicoService : IOrdemServicoService
 {
+    private static bool _metricsConfigured = false;
     private readonly IOrdemServicoRepository _ordemServicoRepository;
     private readonly IClienteRepository _clienteRepository;
     private readonly IVeiculoRepository _veiculoRepository;
@@ -62,11 +65,22 @@ public class OrdemServicoService : IOrdemServicoService
         _orcamentoRepository = orcamentoRepository;
         _ordemServicoStatusRepository = ordemServicoStatusRepository;
         _orcamentoStatusRepository = orcamentoStatusRepository;
+        // Configura StatsdClient.Metrics apenas uma vez
+        if (!_metricsConfigured)
+        {
+            StatsdClient.Metrics.Configure(new StatsdClient.MetricsConfig
+            {
+                StatsdServerName = "localhost", // ajuste para o endereço do agente Datadog
+                StatsdServerPort = 8125
+            });
+            _metricsConfigured = true;
+        }
     }
 
     public async Task<OrdemServicoDto> CreateOrdemServicoComOrcamentoAsync(CreateOrdemServicoDto createDto)
     {
         var cliente = await _clienteRepository.GetByCpfCnpjAsync(createDto.ClienteCpfCnpj);
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         if (cliente == null)
             throw new KeyNotFoundException($"Cliente com CPF/CNPJ {createDto.ClienteCpfCnpj} não encontrado");
 
@@ -160,8 +174,15 @@ public class OrdemServicoService : IOrdemServicoService
             }
         }
 
-        return await GetByIdAsync(createdOrdemServico.Id)
-               ?? throw new InvalidOperationException("Erro ao recuperar ordem de Serviço criada com sucesso.");
+         var result = await GetByIdAsync(createdOrdemServico.Id)
+             ?? throw new InvalidOperationException("Erro ao recuperar ordem de Serviço criada com sucesso.");
+
+         stopwatch.Stop();
+         // Métricas customizadas Datadog
+         StatsdClient.Metrics.Counter("oficinacardozo.ordem_servico.criada", 1);
+         StatsdClient.Metrics.Timer("oficinacardozo.ordem_servico.tempo_criacao_ms", (int)stopwatch.ElapsedMilliseconds);
+
+         return result;
     }
 
     public async Task<IEnumerable<OrdemServicoDto>> GetAllAtivasAsync()
