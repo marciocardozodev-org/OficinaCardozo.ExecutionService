@@ -79,6 +79,16 @@ jobs:
         docker build -t $DOCKER_IMAGE:$TAG -f Dockerfile .
         docker push $DOCKER_IMAGE:$TAG
 
+    - name: Atualizar deployment.yaml com nova tag
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        sed -i "s|image: $DOCKER_IMAGE:.*|image: $DOCKER_IMAGE:$TAG|g" k8s/deployment.yaml
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "github-actions"
+        git add k8s/deployment.yaml
+        git commit -m "ci: update deployment image tag to $TAG" || echo "No changes to commit"
+        git push || echo "No changes to push"
+
     - name: Configure AWS credentials for EKS
       if: env.DEPLOY_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v4
