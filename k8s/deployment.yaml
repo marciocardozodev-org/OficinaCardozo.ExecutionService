@@ -24,7 +24,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
           image: marciocardozodev/oficinacardozo-api:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:
