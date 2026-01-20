@@ -74,8 +74,8 @@ jobs:
     - name: Build and push Docker image
       if: env.DEPLOY_ENABLED == 'true'
       run: |
-        SHORT_SHA=${GITHUB_SHA::7}
         TAG="manual-$(date +%Y%m%d%H%M%S)"
+        echo "TAG=$TAG" >> $GITHUB_ENV
         docker build -t $DOCKER_IMAGE:$TAG -f Dockerfile .
         docker push $DOCKER_IMAGE:$TAG
 
@@ -104,13 +104,10 @@ jobs:
     - name: Apply manifests to Kubernetes
       if: env.DEPLOY_ENABLED == 'true'
       run: |
-        SHORT_SHA=${GITHUB_SHA::7}
         if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
           NAMESPACE="${K8S_NAMESPACE_PROD}"
-          TAG="${SHORT_SHA}"
         else
           NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
-          TAG="homolog-${SHORT_SHA}"
         fi
 
         kubectl -n "$NAMESPACE" apply -f k8s/
