@@ -47,15 +47,15 @@ spec:
               memory: "512Mi"
           readinessProbe:
             httpGet:
-              path: "/swagger/index.html"
+              path: "/Health/ping"
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: "/swagger/index.html"
+              path: "/Health/ping"
               port: 8080
-            initialDelaySeconds: 120
+            initialDelaySeconds: 40
             periodSeconds: 20
 ---
 # Namespace é definido externamente pelo pipeline (K8S_NAMESPACE_*)
