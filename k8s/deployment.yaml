@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: oficina-cardozo-api
+      annotations:
+        ad.datadoghq.com/api.logs: '[{"source":"csharp","service":"oficina-cardozo-api"}]'
     spec:
       containers:
         - name: api
