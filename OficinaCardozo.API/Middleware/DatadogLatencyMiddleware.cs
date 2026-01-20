@@ -36,8 +36,10 @@ namespace OficinaCardozo.API.Middleware
                 $"status:{statusCode}"
             };
 
+
             // Log explícito antes do envio
             Serilog.Log.Warning("[DatadogLatencyMiddleware] Enviando métrica: {Metric} {Latency}ms {Path} {Method} {Status}", "api.latency.ms", latencyMs, path, method, statusCode);
+            Console.WriteLine($"[DatadogLatencyMiddleware] (Console) Enviando métrica: api.latency.ms {latencyMs}ms {path} {method} {statusCode}");
 
             // Envia a métrica de latência para o Datadog
             try
