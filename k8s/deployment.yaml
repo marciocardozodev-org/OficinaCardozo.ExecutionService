@@ -23,7 +23,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          image: marciocardozodev/oficinacardozo-api-web:manual-20260120042831
+          image: marciocardozodev/oficinacardozo-api-web:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
