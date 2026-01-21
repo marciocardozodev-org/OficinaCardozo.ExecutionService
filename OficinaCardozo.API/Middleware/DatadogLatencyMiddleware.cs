@@ -37,26 +37,9 @@ namespace OficinaCardozo.API.Middleware
             };
 
 
-            // Log explícito antes do envio
-            Serilog.Log.Warning("[DatadogLatencyMiddleware] Enviando métrica: {Metric} {Latency}ms {Path} {Method} {Status}", "api.latency.ms", latencyMs, path, method, statusCode);
-            Console.WriteLine($"[DatadogLatencyMiddleware] (Console) Enviando métrica: api.latency.ms {latencyMs}ms {path} {method} {statusCode}");
-
-            // Envia a métrica de latência para o Datadog
-            try
-            {
-                var datadog = new Integrations.DatadogApiClient();
-                await datadog.SendMetricAsync(
-                    metricName: "api.latency.ms",
-                    value: latencyMs,
-                    host: host,
-                    tags: tags
-                );
-                Serilog.Log.Warning("[DatadogLatencyMiddleware] Métrica enviada com sucesso para o Datadog.");
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Warning(ex, "Falha ao enviar métrica de latência para o Datadog");
-            }
+            // Log local de latência (Datadog via DogStatsD será implementado)
+            Serilog.Log.Warning("[DatadogLatencyMiddleware] Latência: {Metric} {Latency}ms {Path} {Method} {Status}", "api.latency.ms", latencyMs, path, method, statusCode);
+            Console.WriteLine($"[DatadogLatencyMiddleware] (Console) Latência: api.latency.ms {latencyMs}ms {path} {method} {statusCode}");
         }
     }
 }
