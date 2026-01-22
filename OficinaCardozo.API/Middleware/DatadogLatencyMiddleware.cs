@@ -44,10 +44,12 @@ namespace OficinaCardozo.API.Middleware
                 // Não existe IsConfigured, então use um static flag se necessário (ou sempre configure, pois é idempotente)
                 Metrics.Configure(new MetricsConfig
                 {
-                    StatsdServerName = "localhost", // ajuste para endereço do agente
+                    StatsdServerName = "datadog-agent", // nome do serviço do Agent no cluster
                     StatsdServerPort = 8125
                 });
                 Metrics.Timer("api.latency.ms", (int)latencyMs);
+                // Envio de métrica teste para diagnóstico
+                Metrics.Timer("test.metric.timer", 42);
                 Serilog.Log.Warning("[DatadogLatencyMiddleware] Métrica enviada via DogStatsD: {Metric} {Latency}ms {Tags}", "api.latency.ms", latencyMs, string.Join(",", tags));
             }
             catch (Exception ex)
