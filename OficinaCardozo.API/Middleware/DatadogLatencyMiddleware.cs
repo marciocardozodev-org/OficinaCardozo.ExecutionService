@@ -42,11 +42,7 @@ namespace OficinaCardozo.API.Middleware
             {
                 // Inicializa o Metrics apenas uma vez (ideal: singleton via DI, aqui para exemplo)
                 // Não existe IsConfigured, então use um static flag se necessário (ou sempre configure, pois é idempotente)
-                Metrics.Configure(new MetricsConfig
-                {
-                    StatsdServerName = "datadog-agent", // nome do serviço do Agent no cluster
-                    StatsdServerPort = 8125
-                });
+                // Configuração do Metrics agora é global no Program.cs
                 Metrics.Timer("api.latency.ms", (int)latencyMs);
                 // Envio de métrica teste para diagnóstico
                 Metrics.Timer("test.metric.timer", 42);
