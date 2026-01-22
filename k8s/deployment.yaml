@@ -41,8 +41,6 @@ spec:
                 name: oficina-cardozo-db-secret
             - secretRef:
                 name: oficina-cardozo-secrets
-            - configMapRef:
-                name: datadog-config
             - secretRef:
                 name: datadog-secret
           resources:
