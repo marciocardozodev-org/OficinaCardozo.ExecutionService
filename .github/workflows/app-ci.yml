@@ -101,6 +101,24 @@ jobs:
         aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
 
 
+    - name: Garantir Secret datadog-agent no namespace
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+          NAMESPACE="${K8S_NAMESPACE_PROD}"
+        else
+          NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
+        fi
+
+        kubectl create secret generic datadog-agent \
+          --from-literal=DD_API_KEY="${{ secrets.DATADOG_API_KEY }}" \
+          --from-literal=DD_SITE="${{ secrets.DATADOG_SITE }}" \
+          --dry-run=client -o yaml | kubectl apply -n "$NAMESPACE" -f -
+      env:
+        K8S_NAMESPACE_HOMOLOG: oficina-homolog
+        K8S_NAMESPACE_PROD: oficina-prod
+
+
     - name: Apply manifests to Kubernetes
       if: env.DEPLOY_ENABLED == 'true'
       run: |
