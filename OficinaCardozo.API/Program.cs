@@ -20,6 +20,18 @@ using Serilog.Formatting.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
+// Registro de todos os serviços de domínio e application necessários para os controllers
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IVeiculoService, VeiculoService>();
+builder.Services.AddScoped<IServicoService, ServicoService>();
+builder.Services.AddScoped<IPecaService, PecaService>();
+builder.Services.AddScoped<IOrdemServicoService, OrdemServicoService>();
+builder.Services.AddScoped<ICpfCnpjValidationService, CpfCnpjValidationService>();
+builder.Services.AddScoped<IClienteMapper, ClienteMapper>();
+builder.Services.AddScoped<IVeiculoMapper, VeiculoMapper>();
+builder.Services.AddScoped<IServicoMapper, ServicoMapper>();
+// Se existir extensão AddApplicationServices, garantir chamada
+// builder.Services.AddApplicationServices();
 // Configuração JWT Authentication (compatível com ConfigMap/Secret)
 var jwtKey = builder.Configuration["ConfiguracoesJwt:ChaveSecreta"] ?? "sua-chave-jwt-super-secreta";
 var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtKey));
