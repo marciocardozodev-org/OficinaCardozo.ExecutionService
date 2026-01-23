@@ -52,12 +52,31 @@ namespace OficinaCardozo.API.Controllers
         [HttpPost("test-batch")]
         public IActionResult SendBatchMetrics([FromQuery] int count = 100)
         {
+            int criadas = 0;
             for (int i = 0; i < count; i++)
             {
-                StatsdClient.Metrics.Counter("echo_teste.metric", 1);
-                StatsdClient.Metrics.Counter("nova_metrica.teste", 1);
+                try
+                {
+                    var dto = new OficinaCardozo.Application.DTOs.CreateOrdemServicoDto
+                    {
+                        ClienteCpfCnpj = "1111111111" + (i % 9), // CPF/CNPJ fictício
+                        VeiculoPlaca = $"ABC{i % 9999:D4}",
+                        VeiculoMarcaModelo = "Modelo Teste",
+                        VeiculoAnoFabricacao = 2020 + (i % 5),
+                        ServicosIds = new List<int> { 1 }, // ID de serviço válido
+                        Pecas = new List<OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto> {
+                            new OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto { IdPeca = 1, Quantidade = 1 }
+                        }
+                    };
+                    _ordemServicoService.CreateOrdemServicoComOrcamentoAsync(dto).GetAwaiter().GetResult();
+                    criadas++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Erro ao criar ordem de serviço no batch, índice {i}");
+                }
             }
-            return Ok(new { sent = count, timestamp = DateTime.UtcNow });
+            return Ok(new { criadas, timestamp = DateTime.UtcNow });
         }
 
         [HttpPost("test-fail")]
