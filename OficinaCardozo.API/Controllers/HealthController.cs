@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using OficinaCardozo.Infrastructure.Data;
 
 namespace OficinaCardozo.API.Controllers;
 
@@ -6,9 +7,12 @@ namespace OficinaCardozo.API.Controllers;
 [Route("[controller]")]
 public class HealthController : ControllerBase
 {
-    public HealthController()
+    private readonly OficinaDbContext _context;
+
+    public HealthController(OficinaDbContext context)
     {
-        Console.WriteLine($"[HealthController] Instanciado em {DateTime.UtcNow:O}");
+        _context = context;
+        Console.WriteLine($"[HealthController] Instanciado com DbContext em {DateTime.UtcNow:O}");
     }
 
     [HttpGet("live")]
