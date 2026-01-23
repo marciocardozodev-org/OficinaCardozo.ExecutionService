@@ -22,19 +22,9 @@ var builder = WebApplication.CreateBuilder(args);
 try
 {
     Console.WriteLine("[Program] Antes de UseSerilog");
-    // Simplifica Serilog para Console sink
-    try
-    {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
-        builder.Host.UseSerilog();
-        Console.WriteLine("[Program] Depois de UseSerilog");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[Program] ERRO ao inicializar Serilog: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
-    }
+    // Substitui o logger padrão pelo Serilog
+    builder.Host.UseSerilog();
+    Console.WriteLine("[Program] Depois de UseSerilog");
 
     // Configuração global do DogStatsD para métricas customizadas
     StatsdClient.Metrics.Configure(new StatsdClient.MetricsConfig
