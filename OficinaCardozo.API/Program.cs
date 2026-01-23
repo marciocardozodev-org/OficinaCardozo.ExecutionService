@@ -13,6 +13,8 @@ using OficinaCardozo.Infrastructure.Data;
 using OficinaCardozo.Infrastructure.Repositories;
 using OficinaCardozo.Infrastructure.Services;
 using System.Text;
+using Serilog;
+using Serilog.Formatting.Json;
 // Serilog removido para teste de isolamento
 // using Serilog.Enrichers; // ActivityEnricher não suportado em net8.0
 
@@ -89,14 +91,28 @@ try
         options.UseNpgsql(connectionString));
     builder.Services.AddInfrastructureServices();
 
+    // Configuração do Serilog para logs estruturados em JSON
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "OficinaCardozo.API")
+        .WriteTo.Console(new JsonFormatter())
+        .CreateLogger();
+
+    builder.Host.UseSerilog();
+
+    // Middleware para correlação de requisições
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger);
+
     // ...demais configurações de banco, JWT, DI, etc...
 
     var app = builder.Build();
 
-    // Middleware para correlação de requisições
+    // Middleware para adicionar CorrelationId nos logs
     app.Use(async (context, next) =>
     {
-        Serilog.Context.LogContext.PushProperty("CorrelationId", context.TraceIdentifier);
+        var correlationId = context.TraceIdentifier;
+        Serilog.Context.LogContext.PushProperty("CorrelationId", correlationId);
         await next();
     });
 

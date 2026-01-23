@@ -26,6 +26,7 @@ public class EmailTestController : ControllerBase
     [HttpGet("verificar-configuracao")]
     public IActionResult VerificarConfiguracao()
     {
+        _logger.LogInformation("Verificando configura√ß√£o de email");
         return Ok(new
         {
             Host = _config.Host,
@@ -34,7 +35,7 @@ public class EmailTestController : ControllerBase
             UsarSsl = _config.UsarSsl,
             SenhaConfigurada = !string.IsNullOrEmpty(_config.Senha),
             Intervalo = _config.IntervaloVerificacaoMinutos,
-            Status = "ConfiguraÁ„o carregada com sucesso",
+            Status = "Configura√ß√£o carregada com sucesso",
             Timestamp = DateTime.Now
         });
     }
@@ -42,28 +43,22 @@ public class EmailTestController : ControllerBase
     [HttpPost("testar-conexao")]
     public async Task<IActionResult> TestarConexao()
     {
+        _logger.LogInformation("Iniciando teste de conex√£o de email...");
         try
         {
-            _logger.LogInformation("?? Iniciando teste de conex„o de email...");
             await _emailService.ProcessarEmailsAsync();
-
+            _logger.LogInformation("Conex√£o com email funcionando!");
             return Ok(new
             {
                 Sucesso = true,
-                Mensagem = "? Conex„o com email funcionando!",
+                Mensagem = "Conex√£o com email funcionando!",
                 Timestamp = DateTime.Now
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "? Erro no teste de conex„o");
-            return BadRequest(new
-            {
-                Sucesso = false,
-                Erro = ex.Message,
-                Tipo = ex.GetType().Name,
-                Timestamp = DateTime.Now
-            });
+            _logger.LogError(ex, "Erro no teste de conex√£o de email");
+            return BadRequest(new { Sucesso = false, Mensagem = "Erro no teste de conex√£o", Timestamp = DateTime.Now });
         }
     }
 

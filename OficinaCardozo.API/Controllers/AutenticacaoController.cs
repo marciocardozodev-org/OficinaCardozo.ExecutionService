@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OficinaCardozo.Application.DTOs;
 using OficinaCardozo.Application.Services;
 using System.Security.Claims;
@@ -10,31 +11,36 @@ namespace OficinaCardozo.API.Controllers;
 [Route("api/[controller]")]
 public class AutenticacaoController : ControllerBase
 {
+    private readonly ILogger<AutenticacaoController> _logger;
     private readonly IAutenticacaoService _autenticacaoService;
 
-    public AutenticacaoController(IAutenticacaoService autenticacaoService)
+    public AutenticacaoController(IAutenticacaoService autenticacaoService, ILogger<AutenticacaoController> logger)
     {
         _autenticacaoService = autenticacaoService;
+        _logger = logger;
     }
 
- 
     [HttpPost("login")]
     public async Task<ActionResult<TokenRespostaDto>> Login([FromBody] LoginDto loginDto)
     {
+        _logger.LogInformation("Login endpoint chamado para usuário {User}", loginDto?.Usuario);
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var resultado = await _autenticacaoService.FazerLoginAsync(loginDto);
+            _logger.LogInformation("Login realizado com sucesso para usuário {User}", loginDto?.Usuario);
             return Ok(resultado);
         }
         catch (UnauthorizedAccessException ex)
         {
+            _logger.LogWarning(ex, "Login não autorizado para usuário {User}", loginDto?.Usuario);
             return Unauthorized(new { message = ex.Message });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro interno no login para usuário {User}", loginDto?.Usuario);
             return StatusCode(500, new { message = "Erro interno do servidor", details = ex.Message });
         }
     }

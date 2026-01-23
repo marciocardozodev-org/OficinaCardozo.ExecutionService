@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OficinaCardozo.Application.Interfaces;
 
 namespace OficinaCardozo.API.Controllers;
@@ -7,18 +8,20 @@ namespace OficinaCardozo.API.Controllers;
 [Route("[controller]")]
 public class HealthController : ControllerBase
 {
+    private readonly ILogger<HealthController> _logger;
     private readonly IHealthService _healthService;
 
-    public HealthController(IHealthService healthService)
+    public HealthController(IHealthService healthService, ILogger<HealthController> logger)
     {
         _healthService = healthService;
-        Console.WriteLine($"[HealthController] Instanciado com IHealthService em {DateTime.UtcNow:O}");
+        _logger = logger;
+        _logger.LogInformation("[HealthController] Instanciado com IHealthService em {Time}", DateTime.UtcNow);
     }
 
     [HttpGet("live")]
     public IActionResult Live()
     {
-        Console.WriteLine($"[HealthController] Live endpoint chamado em {DateTime.UtcNow:O}");
+        _logger.LogInformation("[HealthController] Live endpoint chamado em {Time}", DateTime.UtcNow);
         var dbHealthy = _healthService.IsDatabaseHealthy();
         return Ok(new { status = "Live", dbHealthy });
     }
