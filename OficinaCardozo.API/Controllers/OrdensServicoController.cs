@@ -175,17 +175,13 @@ public class OrdensServicoController : ControllerBase
 
             var ordemServico = await _ordemServicoService.CreateOrdemServicoComOrcamentoAsync(createDto);
             _logger.LogInformation("Ordem de serviço criada com sucesso: {Id}", ordemServico.Id);
+
             return CreatedAtAction(nameof(GetById), new { id = ordemServico.Id }, ordemServico);
         }
         catch (KeyNotFoundException ex)
         {
             _logger.LogWarning(ex, "Recurso não encontrado ao criar ordem de serviço");
             return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Operação inválida ao criar ordem de serviço");
-            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
