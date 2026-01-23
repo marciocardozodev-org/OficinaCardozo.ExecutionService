@@ -49,6 +49,12 @@ try
     // ...demais configurações de serviços...
         // Registro do serviço de autenticação
         builder.Services.AddScoped<IAutenticacaoService, AutenticacaoService>();
+        builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+        builder.Services.AddScoped<IServicoRepository, ServicoRepository>();
+        builder.Services.AddScoped<IPecaRepository, PecaRepository>();
+        builder.Services.AddScoped<IVeiculoRepository, VeiculoRepository>();
+        builder.Services.AddScoped<IOrdemServicoRepository, OrdemServicoRepository>();
 
     // Swagger
     builder.Services.AddSwaggerGen(c =>
