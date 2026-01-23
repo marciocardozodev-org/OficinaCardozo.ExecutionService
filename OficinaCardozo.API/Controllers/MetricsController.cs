@@ -1,6 +1,6 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OficinaCardozo.Application.Services;
 using System;
 
@@ -10,39 +10,45 @@ namespace OficinaCardozo.API.Controllers
     [Route("api/metrics")]
     public class MetricsController : ControllerBase
     {
-            private readonly IOrdemServicoService _ordemServicoService;
+        private readonly ILogger<MetricsController> _logger;
+        private readonly IOrdemServicoService _ordemServicoService;
 
-            public MetricsController(IOrdemServicoService ordemServicoService)
+        public MetricsController(IOrdemServicoService ordemServicoService, ILogger<MetricsController> logger)
+        {
+            _ordemServicoService = ordemServicoService;
+            _logger = logger;
+        }
+
+        [HttpPost("test-fail-real")]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestFailReal()
+        {
+            _logger.LogInformation("TestFailReal endpoint chamado");
+            // Dados mockados para garantir falha (cliente inexistente)
+            var dto = new OficinaCardozo.Application.DTOs.CreateOrdemServicoDto
             {
-                _ordemServicoService = ordemServicoService;
-            }
-            [HttpPost("test-fail-real")]
-            [AllowAnonymous]
-            public async Task<IActionResult> TestFailReal()
+                ClienteCpfCnpj = "00000000000", // CPF/CNPJ que não existe
+                VeiculoPlaca = "ZZZ9999",
+                VeiculoMarcaModelo = "Teste",
+                VeiculoAnoFabricacao = 2020,
+                ServicosIds = new List<int> { 99999 }, // ID de serviço inexistente
+                Pecas = new List<OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto> {
+                    new OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto { IdPeca = 99999, Quantidade = 1 }
+                }
+            };
+            try
             {
-                // Dados mockados para garantir falha (cliente inexistente)
-                var dto = new OficinaCardozo.Application.DTOs.CreateOrdemServicoDto
-                {
-                    ClienteCpfCnpj = "00000000000", // CPF/CNPJ que não existe
-                    VeiculoPlaca = "ZZZ9999",
-                    VeiculoMarcaModelo = "Teste",
-                    VeiculoAnoFabricacao = 2020,
-                    ServicosIds = new List<int> { 99999 }, // ID de serviço inexistente
-                    Pecas = new List<OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto> {
-                        new OficinaCardozo.Application.DTOs.CreateOrdemServicoPecaDto { IdPeca = 99999, Quantidade = 1 }
-                    }
-                };
-                try
-                {
-                    await _ordemServicoService.CreateOrdemServicoComOrcamentoAsync(dto);
-                    return Ok(new { message = "Teste não gerou falha como esperado" });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { message = "Falha simulada com sucesso", details = ex.Message });
-                }
+                await _ordemServicoService.CreateOrdemServicoComOrcamentoAsync(dto);
+                _logger.LogWarning("Teste não gerou falha como esperado");
+                return Ok(new { message = "Teste não gerou falha como esperado" });
             }
-    
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha simulada com sucesso");
+                return StatusCode(500, new { message = "Falha simulada com sucesso", details = ex.Message });
+            }
+        }
+
         [HttpPost("test-batch")]
         public IActionResult SendBatchMetrics([FromQuery] int count = 100)
         {
