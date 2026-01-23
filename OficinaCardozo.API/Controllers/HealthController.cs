@@ -11,8 +11,16 @@ public class HealthController : ControllerBase
 
     public HealthController(OficinaDbContext context)
     {
-        _context = context;
-        Console.WriteLine($"[HealthController] Instanciado com DbContext em {DateTime.UtcNow:O}");
+        try
+        {
+            _context = context;
+            Console.WriteLine($"[HealthController] Instanciado com DbContext em {DateTime.UtcNow:O}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[HealthController] ERRO ao instanciar: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
+            throw;
+        }
     }
 
     [HttpGet("live")]

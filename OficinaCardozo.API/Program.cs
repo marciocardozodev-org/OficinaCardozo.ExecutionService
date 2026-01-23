@@ -18,6 +18,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Diagnóstico: logar variáveis de ambiente do banco
+Console.WriteLine($"[DIAG] DB_CONNECTION: {Environment.GetEnvironmentVariable("DB_CONNECTION")}");
+Console.WriteLine($"[DIAG] DB_HOST: {Environment.GetEnvironmentVariable("DB_HOST")}");
+Console.WriteLine($"[DIAG] DB_USER: {Environment.GetEnvironmentVariable("DB_USER")}");
+Console.WriteLine($"[DIAG] DB_DATABASE: {Environment.GetEnvironmentVariable("DB_DATABASE")}");
+Console.WriteLine($"[DIAG] ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+
 try
 {
     // Serilog removido para teste de isolamento
