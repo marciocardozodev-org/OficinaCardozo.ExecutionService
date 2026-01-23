@@ -70,12 +70,10 @@ public class OrdemServicoService : IOrdemServicoService
         {
             StatsdClient.Metrics.Configure(new StatsdClient.MetricsConfig
             {
-                StatsdServerName = "localhost", // ajuste para o endereço do agente Datadog
+                StatsdServerName = "datadog-agent.default.svc.cluster.local", // endereço correto do Agent no cluster
                 StatsdServerPort = 8125
             });
             _metricsConfigured = true;
-            // Envia métrica de teste no startup
-            StatsdClient.Metrics.Counter("echo_teste.metric", 1);
         }
     }
 

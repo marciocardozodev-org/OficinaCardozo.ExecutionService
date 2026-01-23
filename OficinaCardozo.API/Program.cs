@@ -23,11 +23,14 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Configuração global do DogStatsD para métricas customizadas
+
 StatsdClient.Metrics.Configure(new StatsdClient.MetricsConfig
 {
-    StatsdServerName = "datadog-agent",
+    StatsdServerName = "datadog-agent.default.svc.cluster.local",
     StatsdServerPort = 8125
 });
+// Envia métrica de teste no startup global
+StatsdClient.Metrics.Counter("echo_teste.metric", 1);
 
 Log.Information("Iniciando a configuração da API Oficina Cardozo...");
 
