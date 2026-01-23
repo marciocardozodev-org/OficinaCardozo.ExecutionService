@@ -135,7 +135,15 @@ jobs:
         kubectl -n "$NAMESPACE" set image deployment/oficina-cardozo-api \
           api=$DOCKER_IMAGE:$IMAGE_TAG
 
-        kubectl -n "$NAMESPACE" rollout status deployment/oficina-cardozo-api
+        echo '⏳ Aguardando rollout do deployment (timeout 180s)...'
+        if ! kubectl -n "$NAMESPACE" rollout status deployment/oficina-cardozo-api --timeout=180s; then
+          echo '❌ Rollout travado! Coletando diagnóstico...'
+          kubectl -n "$NAMESPACE" get pods -o wide || true
+          kubectl -n "$NAMESPACE" describe deployment/oficina-cardozo-api || true
+          kubectl -n "$NAMESPACE" get events --sort-by=.lastTimestamp | tail -20 || true
+          echo '⚠️  Se houver pods em Terminating, pode ser necessário forçar a deleção.'
+          exit 1
+        fi
       env:
         K8S_NAMESPACE_HOMOLOG: oficina-homolog
         K8S_NAMESPACE_PROD: oficina-prod
