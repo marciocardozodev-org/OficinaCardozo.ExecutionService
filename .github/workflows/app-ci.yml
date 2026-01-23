@@ -10,6 +10,7 @@ on:
 env:
   DOTNET_VERSION: 8.0.x
   DOCKER_IMAGE: marciocardozodev/oficinacardozo-api-web
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-test-deploy:
@@ -74,7 +75,8 @@ jobs:
     - name: Build and push Docker image
       if: env.DEPLOY_ENABLED == 'true'
       run: |
-        docker build -t $DOCKER_IMAGE:latest -f Dockerfile .
+        docker build -t $DOCKER_IMAGE:$IMAGE_TAG -t $DOCKER_IMAGE:latest -f Dockerfile .
+        docker push $DOCKER_IMAGE:$IMAGE_TAG
         docker push $DOCKER_IMAGE:latest
 
 
@@ -131,7 +133,7 @@ jobs:
         kubectl -n "$NAMESPACE" apply -f k8s/
 
         kubectl -n "$NAMESPACE" set image deployment/oficina-cardozo-api \
-          api=$DOCKER_IMAGE:latest
+          api=$DOCKER_IMAGE:$IMAGE_TAG
 
         kubectl -n "$NAMESPACE" rollout status deployment/oficina-cardozo-api
       env:

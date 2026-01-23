@@ -13,6 +13,7 @@ namespace OficinaCardozo.API.Controllers
             for (int i = 0; i < count; i++)
             {
                 StatsdClient.Metrics.Counter("echo_teste.metric", 1);
+                StatsdClient.Metrics.Counter("nova_metrica.teste", 1);
             }
             return Ok(new { sent = count, timestamp = DateTime.UtcNow });
         }
