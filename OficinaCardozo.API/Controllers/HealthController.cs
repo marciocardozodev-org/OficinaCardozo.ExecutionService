@@ -13,18 +13,25 @@ public class HealthController : ControllerBase
     public HealthController(OficinaDbContext context)
     {
         _context = context;
+        Console.WriteLine($"[HealthController] Instanciado em {DateTime.UtcNow:O}");
     }
 
     [HttpGet("live")]
-    public IActionResult Live() => Ok(new { status = "Live" });
+    public IActionResult Live()
+    {
+        Console.WriteLine($"[HealthController] Live endpoint chamado em {DateTime.UtcNow:O}");
+        return Ok(new { status = "Live" });
+    }
 
 
     [HttpGet("ping")]
     public IActionResult Ping()
     {
+        Console.WriteLine($"[HealthController] Ping endpoint chamado em {DateTime.UtcNow:O}");
         try
         {
             StatsdClient.Metrics.Counter("healthcheck.success", 1);
+            Console.WriteLine($"[HealthController] Ping sucesso em {DateTime.UtcNow:O}");
             return Ok(new
             {
                 status = "Alive",
@@ -37,6 +44,7 @@ public class HealthController : ControllerBase
         catch (Exception ex)
         {
             StatsdClient.Metrics.Counter("healthcheck.degraded", 1);
+            Console.WriteLine($"[HealthController] ERRO no Ping: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
             // Nunca retorna 500 para o probe, sempre 200 com status degradado
             return Ok(new {
                 status = "Degraded",
