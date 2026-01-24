@@ -21,8 +21,8 @@ Repositório principal da aplicação Oficina Cardozo. Responsável pela API, l�
 flowchart LR
     User[Usuário/Cliente]
     APIGW[AWS API Gateway]
-    App[OficinaCardozo.API (EKS)]
-    DB[(Aurora)]
+    App[OficinaCardozo.API EKS]
+    DB[Aurora]
     Datadog[Datadog]
     User --> APIGW
     APIGW --> App
