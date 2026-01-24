@@ -11,6 +11,7 @@ namespace OficinaCardozo.API.Controllers;
 [Route("api/[controller]")]
 public class AutenticacaoController : ControllerBase
 {
+    // comentario de teste apresentação
     private readonly ILogger<AutenticacaoController> _logger;
     private readonly IAutenticacaoService _autenticacaoService;
     //comentario de teste apresentação
