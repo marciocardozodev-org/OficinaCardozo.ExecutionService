@@ -4,6 +4,7 @@ using OficinaCardozo.Application.Services;
 using OficinaCardozo.Application.DTOs;
 using OficinaCardozo.Domain.Entities;
 using OficinaCardozo.Domain.Interfaces;
+using OficinaCardozo.Domain.Interfaces.Repositories;
 using FluentAssertions;
 
 namespace OficinaCardozo.Tests.UnitTests.Services;
@@ -54,7 +55,7 @@ public class OrdemServicoServiceMainTests
         );
     }
 
-    #region Criação de Ordem de Serviço
+    #region Criaï¿½ï¿½o de Ordem de Serviï¿½o
 
     [Fact]
     public async Task CriarOrdemServico_ComDadosValidos_DeveCriarComSucesso()
@@ -69,9 +70,9 @@ public class OrdemServicoServiceMainTests
             ServicosIds = new List<int> { 1 }
         };
 
-        var cliente = new Cliente { Id = 1, CpfCnpj = "12345678901", Nome = "João" };
+        var cliente = new Cliente { Id = 1, CpfCnpj = "12345678901", Nome = "Joï¿½o" };
         var veiculo = new Veiculo { Id = 1, IdCliente = 1, Placa = "ABC1234" };
-        var servico = new Servico { Id = 1, NomeServico = "Troca de óleo", Preco = 100m };
+        var servico = new Servico { Id = 1, NomeServico = "Troca de ï¿½leo", Preco = 100m };
         var status = new OrdemServicoStatus { Id = 1, Descricao = STATUS_RECEBIDA };
         var ordemCriada = new OrdemServico { Id = 1, IdVeiculo = 1, IdStatus = 1 };
 
@@ -105,7 +106,7 @@ public class OrdemServicoServiceMainTests
 
     #endregion
 
-    #region Fluxo de Diagnóstico
+    #region Fluxo de Diagnï¿½stico
 
     [Fact]
     public async Task IniciarDiagnostico_ComStatusCorreto_DeveIniciarComSucesso()
@@ -140,7 +141,7 @@ public class OrdemServicoServiceMainTests
 
     #endregion
 
-    #region Aprovação de Orçamento
+    #region Aprovaï¿½ï¿½o de Orï¿½amento
 
     [Fact]
     public async Task AprovarOrcamento_ComAprovacao_DeveIniciarExecucao()
@@ -217,13 +218,13 @@ public class OrdemServicoServiceMainTests
 
         // Assert
         resultado.Should().NotBeNull();
-        resultado.Id.Should().Be(2); // Novo orçamento criado
+        resultado.Id.Should().Be(2); // Novo orï¿½amento criado
         _mockOrcamentoRepository.Verify(x => x.CreateAsync(It.IsAny<Orcamento>()), Times.Once);
     }
 
     #endregion
 
-    #region Finalização e Entrega
+    #region Finalizaï¿½ï¿½o e Entrega
 
     [Fact]
     public async Task FinalizarServico_ComStatusCorreto_DeveRegistrarDataFinalizacao()
