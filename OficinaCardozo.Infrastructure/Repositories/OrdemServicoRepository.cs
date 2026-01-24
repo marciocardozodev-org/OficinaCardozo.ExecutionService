@@ -80,7 +80,8 @@ public class OrdemServicoRepository : IOrdemServicoRepository
         }
 
         _context.OrdensServico.Update(ordemServico);
-        await _context.SaveChangesAsync();
+        var result = await _context.SaveChangesAsync();
+        Console.WriteLine($"[DEBUG] UpdateAsync OrdemServico ID {ordemServico.Id} - Status atualizado para {ordemServico.IdStatus} - SaveChangesAsync result: {result}");
         return ordemServico;
     }
 

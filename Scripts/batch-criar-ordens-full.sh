@@ -23,11 +23,7 @@ fi
 AUTH_HEADER="Authorization: Bearer $TOKEN"
 echo "Token obtido."
 
-random_sleep() {
-  # Sleep entre 0.5 e 2 segundos
-  ms=$(( (RANDOM % 1501) + 500 ))
-  sleep $(awk "BEGIN {print $ms/1000}")
-}
+
 
 
 # Usar sempre o mesmo cliente já existente
@@ -93,15 +89,12 @@ for i in $(seq 0 4); do
     echo "Erro ao criar ordem, pulando para o próximo batch."
     continue
   fi
-  random_sleep
   echo "Iniciando diagnóstico da ordem $ORDEM_ID..."
   curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/iniciar-diagnostico" -H "$AUTH_HEADER"
-  random_sleep
 
   echo "Finalizando diagnóstico da ordem $ORDEM_ID..."
   DIAG_RESP=$(curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/finalizar-diagnostico" -H "$AUTH_HEADER")
   echo "Resposta finalizar diagnóstico: $DIAG_RESP"
-  random_sleep
 
   # Buscar o id do orçamento recém-criado após diagnóstico
   ORDEM_JSON=$(curl -s -X GET "$URL_BASE/api/OrdensServico/$ORDEM_ID" -H "Content-Type: application/json" -H "$AUTH_HEADER")
@@ -124,7 +117,6 @@ for i in $(seq 0 4); do
     -H "Content-Type: application/json" \
     -H "$AUTH_HEADER" \
     -d '{"idOrcamento":'$ORCAMENTO_ID'}'
-  random_sleep
 
   # Aguarda a ordem mudar para status 'Aguardando aprovação' (timeout 10s)
   echo "Aguardando status 'Aguardando aprovação' para a ordem $ORDEM_ID..."
@@ -134,7 +126,6 @@ for i in $(seq 0 4); do
       echo "Status correto alcançado."
       break
     fi
-    sleep 0.5
     if [ "$attempt" = "20" ]; then
       echo "Timeout aguardando status 'Aguardando aprovação'. Status atual: $STATUS"
     fi
@@ -145,14 +136,11 @@ for i in $(seq 0 4); do
     -H "Content-Type: application/json" \
     -H "$AUTH_HEADER" \
     -d '{"idOrcamento":'$ORCAMENTO_ID',"aprovado":true}'
-  random_sleep
 
   echo "Iniciando execução da ordem $ORDEM_ID..."
   curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/iniciar-execucao" -H "$AUTH_HEADER"
-  random_sleep
   echo "Finalizando serviço da ordem $ORDEM_ID..."
   curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/finalizar-servico" -H "$AUTH_HEADER"
-  random_sleep
   echo "Entregando veículo da ordem $ORDEM_ID..."
   curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/entregar-veiculo" -H "$AUTH_HEADER"
   echo "--- Batch $i finalizado ---"
