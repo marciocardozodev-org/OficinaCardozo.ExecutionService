@@ -2,20 +2,56 @@
 # Script para simular o batch completo de criação e avanço de ordens de serviço via API
 # Uso: ./batch-criar-ordens-full.sh <URL_BASE_API>
 
+
 if [ -z "$1" ]; then
   echo "Uso: $0 <URL_BASE_API>"
   exit 1
 fi
 
 
+# Função para autenticar como admin
+autenticar_admin() {
+  AUTH_RESP=$(curl -s -X POST "$URL_BASE/api/Autenticacao/login" \
+    -H "Content-Type: application/json" \
+    -d '{"nomeUsuario":"admin","senha":"Password123!"}')
+  TOKEN=$(echo "$AUTH_RESP" | jq -r '.token')
+  if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+    echo "Erro ao autenticar como admin. Resposta: $AUTH_RESP"
+    exit 1
+  fi
+  AUTH_HEADER="Authorization: Bearer $TOKEN"
+  echo "Token admin obtido."
+}
 
- # Buscar veículos realmente vinculados ao cliente
+# Função para autenticar como cliente (CPF)
+autenticar_cpf() {
+  AUTH_RESP=$(curl -s -X POST "$URL_BASE/api/Autenticacao/login-cpf" \
+    -H "Content-Type: application/json" \
+    -d '{"cpfCnpj":"'$CPF_EXISTENTE'","senha":"Password123!"}')
+  TOKEN=$(echo "$AUTH_RESP" | jq -r '.token')
+  if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+    echo "Erro ao autenticar como cliente. Resposta: $AUTH_RESP"
+    exit 1
+  fi
+  AUTH_HEADER="Authorization: Bearer $TOKEN"
+  echo "Token cliente obtido."
+}
 
+# Usar sempre o mesmo cliente já existente
+CPF_EXISTENTE="35496518806"
+
+
+# Buscar veículos realmente vinculados ao cliente
 URL_BASE="$1"
 echo "URL_BASE: $URL_BASE"
- echo "Buscando veículos do cliente $CPF_EXISTENTE..."
- VEICULOS_JSON=$(curl -s -X GET "$URL_BASE/api/Veiculos?cpfCnpj=$CPF_EXISTENTE" -H "Content-Type: application/json" -H "$AUTH_HEADER")
- PLACAS_EXISTENTES=($(echo "$VEICULOS_JSON" | grep -o '"placa":"[^"]*"' | cut -d':' -f2 | tr -d '"'))
+
+# Autentica inicialmente como admin
+echo "Autenticando..."
+autenticar_admin
+
+echo "Buscando veículos do cliente $CPF_EXISTENTE..."
+VEICULOS_JSON=$(curl -s -X GET "$URL_BASE/api/Veiculos?cpfCnpj=$CPF_EXISTENTE" -H "Content-Type: application/json" -H "$AUTH_HEADER")
+PLACAS_EXISTENTES=($(echo "$VEICULOS_JSON" | grep -o '"placa":"[^\"]*"' | cut -d':' -f2 | tr -d '"'))
 
 
 # Função para autenticar como admin
@@ -55,9 +91,6 @@ autenticar_admin
 
 # Usar sempre o mesmo cliente já existente
 CPF_EXISTENTE="35496518806"
-PLACAS_VALIDAS=("ABC1234" "DEF5678" "GHI9012" "JKL3456" "MNO7890")
-
-
 # Buscar serviço pelo nome antes de criar
 echo "\nBuscando serviço de teste global..."
 SERVICO_LISTA=$(curl -s -X GET "$URL_BASE/api/Servicos" -H "Content-Type: application/json" -H "$AUTH_HEADER")
@@ -83,12 +116,6 @@ if [ -z "$SERVICO_ID" ]; then
 else
   echo "Serviço já existe. ID: $SERVICO_ID"
 fi
-
-
-
-# Buscar todos os veículos do cliente existente
-for PLACA in "${PLACAS_EXISTENTES[@]}"; do
-for PLACA in "${PLACAS_VALIDAS[@]}"; do
 
 if [ ${#PLACAS_EXISTENTES[@]} -eq 0 ]; then
   echo "Não há veículos cadastrados para o cliente $CPF_EXISTENTE."
@@ -133,21 +160,15 @@ for PLACA in "${PLACAS_EXISTENTES[@]}"; do
     continue
   fi
 
+
   echo "Finalizando diagnóstico da ordem $ORDEM_ID..."
   DIAG_RESP=$(curl -s -X POST "$URL_BASE/api/OrdensServico/$ORDEM_ID/finalizar-diagnostico" -H "$AUTH_HEADER")
   echo "Resposta finalizar diagnóstico: $DIAG_RESP"
 
-  # Buscar o id do orçamento recém-criado após diagnóstico
-  ORDEM_JSON=$(curl -s -X GET "$URL_BASE/api/OrdensServico/$ORDEM_ID" -H "Content-Type: application/json" -H "$AUTH_HEADER")
-  echo "Ordem após diagnóstico: $ORDEM_JSON"
-  ORCAMENTO_ID=$(echo "$ORDEM_JSON" | grep -o '"orcamentos":\[{' | wc -l)
-  if [ "$ORCAMENTO_ID" -eq 0 ]; then
-    ORCAMENTO_ID=$(echo "$ORDEM_JSON" | grep -o '"id":[0-9]*' | head -2 | tail -1 | grep -o '[0-9]*')
-  else
-    ORCAMENTO_ID=$(echo "$ORDEM_JSON" | grep -o '"orcamentos":\[{' | grep -o '"id":[0-9]*' | grep -o '[0-9]*' | head -1)
-  fi
+  # Extrair o id do orçamento diretamente da resposta do diagnóstico
+  ORCAMENTO_ID=$(echo "$DIAG_RESP" | jq -r '.id')
   echo "Orçamento encontrado para aprovação: $ORCAMENTO_ID"
-  if [ -z "$ORCAMENTO_ID" ]; then
+  if [ -z "$ORCAMENTO_ID" ] || [ "$ORCAMENTO_ID" = "null" ]; then
     echo "Não foi possível encontrar o id do orçamento para a ordem $ORDEM_ID."
     continue
   fi
