@@ -13,6 +13,7 @@ using OficinaCardozo.Application.Mappers;
 using OficinaCardozo.Application.Services;
 using OficinaCardozo.Application.Settings;
 using OficinaCardozo.Domain.Interfaces.Repositories;
+using OficinaCardozo.Domain.Interfaces.Services;
 using OficinaCardozo.Infrastructure.Data;
 using OficinaCardozo.Infrastructure.Repositories;
 

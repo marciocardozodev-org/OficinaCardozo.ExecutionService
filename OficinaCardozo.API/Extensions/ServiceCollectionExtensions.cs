@@ -2,6 +2,7 @@ using OficinaCardozo.Application.Interfaces;
 using OficinaCardozo.Application.Mappers;
 using OficinaCardozo.Application.Services;
 using OficinaCardozo.Domain.Interfaces;
+using OficinaCardozo.Domain.Interfaces.Services;
 
 namespace OficinaCardozo.API.Extensions;
 
