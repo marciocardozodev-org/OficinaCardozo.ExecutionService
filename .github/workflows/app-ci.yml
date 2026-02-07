@@ -93,7 +93,7 @@ jobs:
 
     - name: Baixar tfstate do S3
       if: env.DEPLOY_ENABLED == 'true'
-      run: aws s3 cp s3://oficina-cardozo-terraform-state/eks/prod/terraform.tfstate terraform.tfstate
+      run: aws s3 cp s3://oficina-cardozo-terraform-state-sp/eks/prod/terraform.tfstate terraform.tfstate
 
     - name: Gerar kubeconfig do EKS
       if: env.DEPLOY_ENABLED == 'true'
