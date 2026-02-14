@@ -102,6 +102,19 @@ jobs:
         export AWS_REGION="sa-east-1"
         aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
 
+    - name: Criar/atualizar ConfigMap do certificado
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+          NAMESPACE="${K8S_NAMESPACE_PROD}"
+        else
+          NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
+        fi
+
+        kubectl -n "$NAMESPACE" create configmap cert-global-bundle-pe \
+          --from-file=global-bundle.pe=global-bundle.pe \
+          --dry-run=client -o yaml | kubectl -n "$NAMESPACE" apply -f -
+
 
     
 
@@ -117,7 +130,6 @@ jobs:
         fi
 
         kubectl -n "$NAMESPACE" apply -f k8s/
-
         kubectl -n "$NAMESPACE" set image deployment/oficina-cardozo-api \
           api=$DOCKER_IMAGE:$IMAGE_TAG
 
