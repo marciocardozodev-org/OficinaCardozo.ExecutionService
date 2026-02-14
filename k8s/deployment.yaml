@@ -21,12 +21,12 @@ spec:
       annotations:
         
     spec:
+      containers:
+        - name: api
           volumeMounts:
             - name: cert-global-bundle-pe
               mountPath: /certs
               readOnly: true
-      containers:
-        - name: api
           env:
             - name: POD_NAME
               valueFrom:
