@@ -63,10 +63,10 @@ metadata:
     owner: devops
     project: oficina-cardozo
     workspace: osservice
-    repo: OficinaCardozo.OSService
-    branch: develop
-    pipeline: true
-    auto: true
+    sync: "true"
+    infra: "true"
+    pipeline: "true"
+    auto: "true"
     last-update: "2026-02-15"
 data:
   create-db.sql: |
