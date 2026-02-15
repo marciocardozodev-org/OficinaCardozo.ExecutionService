@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: osservice
-          image: marciocardozodev/oficinacardozo-osservice:latest
+          # Arquivo legado: não usar. O deploy correto está em deploy/k8s/deployment.yaml
           ports:
             - containerPort: 80
           env:
