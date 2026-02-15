@@ -98,12 +98,28 @@ jobs:
         terraform plan -input=false -var="enable_db=true"
         terraform apply -auto-approve -input=false -var="enable_db=true"
     
+
     - name: Gerar kubeconfig do EKS
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: |
         export CLUSTER_NAME="oficina-cardozo-eks"
         export AWS_REGION="sa-east-1"
         aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
+
+    - name: Garantir secret oficina-cardozo-db-secret
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      env:
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+      run: |
+        kubectl create secret generic oficina-cardozo-db-secret \
+          --from-literal=DB_HOST="$DB_HOST" \
+          --from-literal=DB_USER="$DB_USER" \
+          --from-literal=DB_PASSWORD="$DB_PASSWORD" \
+          --from-literal=DB_NAME="$DB_NAME" \
+          -n default --dry-run=client -o yaml | kubectl apply -f -
 
     - name: Executar Job de criação das tabelas no banco
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
