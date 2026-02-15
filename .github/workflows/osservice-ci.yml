@@ -2,9 +2,9 @@ name: CI/CD - OSService
 
 on:
   push:
-    branches: [ develop, homolog, main ]
+    branches: [ develop, homolog, master ]
   pull_request:
-    branches: [ develop, homolog, main ]
+    branches: [ develop, homolog, master ]
 
 jobs:
   build-test-deploy:
@@ -44,14 +44,14 @@ jobs:
 
 
       - name: Build Docker image
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/homolog'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
         run: docker build -t marciocardozodev/oficinacardozo-osservice:${{ github.sha }} -f OFICINACARDOZO.OSSERVICE/Dockerfile OFICINACARDOZO.OSSERVICE
       - name: Login no Docker Hub
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/homolog'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
       - name: Push Docker image
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/homolog'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
         run: docker push marciocardozodev/oficinacardozo-osservice:${{ github.sha }}
 
       # Estrutura para deploy (K8s, ECS, etc) pode ser adicionada aqui
