@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: osservice
-        image: "REPLACE_REGISTRY/oficinacardozo-osservice:REPLACE_TAG"
+        image: marciocardozodev/oficinacardozo-osservice:${IMAGE_TAG}
         ports:
         - containerPort: 80
         env:

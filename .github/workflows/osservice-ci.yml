@@ -55,6 +55,15 @@ jobs:
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: docker push marciocardozodev/oficinacardozo-osservice:${{ github.sha }}
 
+    - name: Substituir tag da imagem no deployment.yaml
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      run: |
+        sed -i "s|\${IMAGE_TAG}|${{ github.sha }}|g" OFICINACARDOZO.OSSERVICE/deploy/k8s/deployment.yaml
+
+    - name: Deploy no Kubernetes (EKS)
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      run: kubectl apply -f OFICINACARDOZO.OSSERVICE/deploy/k8s/deployment.yaml
+
     - name: Configurar credenciais AWS para EKS
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       uses: aws-actions/configure-aws-credentials@v4
