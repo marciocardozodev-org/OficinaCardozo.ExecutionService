@@ -71,20 +71,24 @@ public class AutenticacaoController : ControllerBase
     [HttpPost("registro")]
     public async Task<ActionResult<UsuarioDto>> Registro([FromBody] CriarUsuarioDto criarUsuarioDto)
     {
+        _logger.LogInformation("Registro endpoint chamado para email {Email}", criarUsuarioDto?.Email);
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var resultado = await _autenticacaoService.CriarUsuarioAsync(criarUsuarioDto);
+            _logger.LogInformation("Usuário registrado com sucesso: {Email}", criarUsuarioDto?.Email);
             return CreatedAtAction(nameof(ObterPerfil), new { }, resultado);
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(ex, "Falha de operação no registro para email {Email}", criarUsuarioDto?.Email);
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro interno no registro para email {Email}", criarUsuarioDto?.Email);
             return StatusCode(500, new { message = "Erro interno do servidor", details = ex.Message });
         }
     }
