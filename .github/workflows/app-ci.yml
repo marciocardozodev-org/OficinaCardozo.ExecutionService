@@ -53,12 +53,17 @@ jobs:
 
     - name: Restore, Build & Test
       run: |
-          dotnet restore OFICINACARDOZO.OSSERVICE/OFICINACARDOZO.OSSERVICE.csproj --verbosity minimal
-          dotnet build OFICINACARDOZO.OSSERVICE/OFICINACARDOZO.OSSERVICE.csproj --no-restore --configuration Release --verbosity minimal
-          dotnet test OFICINACARDOZO.OSSERVICE/OFICINACARDOZO.OSSERVICE.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
-          dotnet restore ./OFICINACARDOZO.OSSERVICE.csproj --verbosity minimal
-          dotnet build ./OFICINACARDOZO.OSSERVICE.csproj --no-restore --configuration Release --verbosity minimal
-          dotnet test ./OFICINACARDOZO.OSSERVICE.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
+          dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Application/OficinaCardozo.Application.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --verbosity minimal
+          dotnet restore OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --verbosity minimal
+          dotnet build OficinaCardozo.API/OficinaCardozo.API.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Application/OficinaCardozo.Application.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet build OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-restore --configuration Release --verbosity minimal
+          dotnet test OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
 
     - name: Docker login
       if: env.DEPLOY_ENABLED == 'true'
