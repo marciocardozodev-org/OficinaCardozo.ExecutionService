@@ -55,14 +55,45 @@ jobs:
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: docker push marciocardozodev/oficinacardozo-osservice:${{ github.sha }}
 
+    # --- Provisionamento do Banco de Dados (Terraform) ---
+    - name: Baixar outputs do InfraK8s
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-outputs
+        path: ../
 
-    - name: Configurar credenciais AWS para EKS
+    - name: Extrair subnets privadas do outputs
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      id: subnets
+      run: |
+        export SUBNETS=$(jq -r '.private_subnet_ids.value | join(",")' ../terraform-outputs.json)
+        echo "db_subnet_ids=[$SUBNETS]" >> $GITHUB_ENV
+
+
+
+    # --- Provisionamento do Banco de Dados (Terraform) ---
+    - name: Configurar credenciais AWS para Terraform
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: sa-east-1
+
+    - name: Instalar Terraform
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6
+
+    - name: Provisionar RDS PostgreSQL (Terraform)
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      working-directory: OFICINACARDOZO.OSSERVICE/infra/terraform
+        run: |
+          terraform init -input=false
+          terraform plan -input=false -var="enable_db=true" -var="db_subnet_ids=${{ env.db_subnet_ids }}"
+          terraform apply -auto-approve -input=false -var="enable_db=true" -var="db_subnet_ids=${{ env.db_subnet_ids }}"
 
 
     - name: Gerar kubeconfig do EKS
