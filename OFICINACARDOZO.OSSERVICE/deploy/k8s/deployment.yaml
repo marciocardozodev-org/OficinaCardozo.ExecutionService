@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: osservice
+  template:
+    metadata:
+      labels:
+        app: osservice
+    spec:
+      containers:
+      - name: osservice
+        image: "REPLACE_REGISTRY/oficinacardozo-osservice:REPLACE_TAG"
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: osservice-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: JWT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: osservice-secrets
+              key: jwt-key
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
