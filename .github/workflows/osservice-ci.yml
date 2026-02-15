@@ -61,13 +61,13 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: sa-east-1
 
     - name: Gerar kubeconfig do EKS
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: |
         export CLUSTER_NAME="oficina-cardozo-eks"
-        export AWS_REGION="us-east-1"
+        export AWS_REGION="sa-east-1"
         aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
 
     - name: Deploy no Kubernetes
