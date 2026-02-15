@@ -27,7 +27,7 @@ jobs:
       run: cat OFICINACARDOZO.OSSERVICE/Dockerfile
 
     - name: Exibir entrypoint do Dockerfile
-      run: grep ENTRYPOINT Dockerfile
+      run: grep ENTRYPOINT OFICINACARDOZO.OSSERVICE/Dockerfile
 
     - name: Exibir arquivos publicados
       run: ls -lh /app/publish || true
