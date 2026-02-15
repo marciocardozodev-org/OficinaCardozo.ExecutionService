@@ -79,6 +79,11 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: sa-east-1
 
+    - name: Baixar terraform-outputs.json do S3
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      run: |
+        aws s3 cp s3://oficina-cardozo-shared-artifacts/terraform/terraform-outputs.json ../terraform-outputs.json
+
     - name: Instalar Terraform
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       uses: hashicorp/setup-terraform@v3
