@@ -1,3 +1,4 @@
+# Trigger pipeline: alteração forçada em 15/02/2026
 # Build
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
