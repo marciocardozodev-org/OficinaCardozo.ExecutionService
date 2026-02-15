@@ -9,8 +9,12 @@ on:
 
 env:
   DOTNET_VERSION: 8.0.x
+<<<<<<< HEAD
   DOCKER_IMAGE: marciocardozodev/oficinacardozo-api-web
   IMAGE_TAG: ${{ github.sha }}
+=======
+  DOCKER_IMAGE: marciocardozodev/oficinacardozo-api
+>>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
 
 jobs:
   build-test-deploy:
@@ -23,6 +27,7 @@ jobs:
       with:
         fetch-depth: 0
 
+<<<<<<< HEAD
     - name: Exibir Dockerfile usado no build
       run: cat Dockerfile
 
@@ -32,6 +37,8 @@ jobs:
     - name: Exibir arquivos publicados
       run: ls -lh /app/publish || true
 
+=======
+>>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
     - name: Set deployment flag
       run: |
         if [ "${GITHUB_EVENT_NAME}" = "push" ] && { [ "${GITHUB_REF}" = "refs/heads/homolog" ] || [ "${GITHUB_REF}" = "refs/heads/master" ]; }; then
@@ -53,6 +60,7 @@ jobs:
 
     - name: Restore, Build & Test
       run: |
+<<<<<<< HEAD
           dotnet restore OficinaCardozo.API/OficinaCardozo.API.csproj --verbosity minimal
           dotnet restore OficinaCardozo.Infrastructure/OficinaCardozo.Infrastructure.csproj --verbosity minimal
           dotnet restore OficinaCardozo.Application/OficinaCardozo.Application.csproj --verbosity minimal
@@ -64,6 +72,11 @@ jobs:
           dotnet build OficinaCardozo.Domain/OficinaCardozo.Domain.csproj --no-restore --configuration Release --verbosity minimal
           dotnet build OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-restore --configuration Release --verbosity minimal
           dotnet test OficinaCardozo.Tests/OficinaCardozo.Tests.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
+=======
+        dotnet restore --verbosity minimal
+        dotnet build --no-restore --configuration Release --verbosity minimal
+        dotnet test --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
+>>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
 
     - name: Docker login
       if: env.DEPLOY_ENABLED == 'true'
@@ -75,6 +88,7 @@ jobs:
     - name: Build and push Docker image
       if: env.DEPLOY_ENABLED == 'true'
       run: |
+<<<<<<< HEAD
         docker build -t $DOCKER_IMAGE:$IMAGE_TAG -t $DOCKER_IMAGE:latest -f Dockerfile .
         docker push $DOCKER_IMAGE:$IMAGE_TAG
         docker push $DOCKER_IMAGE:latest
@@ -145,3 +159,42 @@ jobs:
       env:
         K8S_NAMESPACE_HOMOLOG: oficina-homolog
         K8S_NAMESPACE_PROD: oficina-prod
+=======
+        SHORT_SHA=${GITHUB_SHA::7}
+        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+          TAG="${SHORT_SHA}"
+        else
+          TAG="homolog-${SHORT_SHA}"
+        fi
+
+        docker build -t $DOCKER_IMAGE:$TAG -f Dockerfile .
+        docker push $DOCKER_IMAGE:$TAG
+
+    - name: Configure kubectl
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${KUBE_CONFIG}" > $HOME/.kube/config
+      env:
+        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_HOMOLOG_PROD }}
+
+    - name: Deploy to Kubernetes
+      if: env.DEPLOY_ENABLED == 'true'
+      run: |
+        SHORT_SHA=${GITHUB_SHA::7}
+        if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+          NAMESPACE="${K8S_NAMESPACE_PROD}"
+          TAG="${SHORT_SHA}"
+        else
+          NAMESPACE="${K8S_NAMESPACE_HOMOLOG}"
+          TAG="homolog-${SHORT_SHA}"
+        fi
+
+        kubectl -n "$NAMESPACE" set image deployment/oficina-cardozo-api \
+          api=$DOCKER_IMAGE:$TAG
+
+        kubectl -n "$NAMESPACE" rollout status deployment/oficina-cardozo-api
+      env:
+        K8S_NAMESPACE_HOMOLOG: ${{ secrets.K8S_NAMESPACE_HOMOLOG }}
+        K8S_NAMESPACE_PROD: ${{ secrets.K8S_NAMESPACE_PROD }}
+>>>>>>> 1256e39 (Initial import of application projects and CI/CD workflow)
