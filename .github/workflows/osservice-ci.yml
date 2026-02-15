@@ -80,8 +80,8 @@ jobs:
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: |
         aws s3 cp s3://oficina-cardozo-shared-artifacts/terraform/terraform-outputs.json ../terraform-outputs.json
-        export SUBNETS=$(jq -r '.private_subnet_ids.value | map("\""+.+"\"") | join(",")' ../terraform-outputs.json)
-        echo "db_subnet_ids=[$SUBNETS]" >> $GITHUB_ENV
+        export SUBNETS=$(jq -c '.private_subnet_ids.value' ../terraform-outputs.json)
+        echo "db_subnet_ids=$SUBNETS" >> $GITHUB_ENV
 
     - name: Instalar Terraform
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
