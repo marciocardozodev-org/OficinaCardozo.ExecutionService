@@ -148,6 +148,7 @@ jobs:
     - name: Executar Job de criação das tabelas no banco
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       run: |
+        kubectl delete job create-db-job -n default --ignore-not-found=true
         kubectl apply -f deploy/k8s/create-db-job.yaml
         kubectl wait --for=condition=complete --timeout=300s job/create-db-job -n default || {
           echo 'Job não completou, coletando debug:'
