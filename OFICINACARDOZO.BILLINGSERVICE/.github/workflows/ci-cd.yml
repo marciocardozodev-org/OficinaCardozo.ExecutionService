@@ -23,10 +23,19 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Limpar arquivos antigos do OSSERVICE
-      run: rm -rf OFICINACARDOZO.BILLINGSERVICE/obj/OFICINACARDOZO.OSSERVICE* OFICINACARDOZO.BILLINGSERVICE/obj/Release/net8.0/OFICINACARDOZO.OSSERVICE* || true
+    - name: Limpar pastas obj/ e bin/
+      run: |
+        echo "Limpando pastas obj/ e bin/ do BillingService..."
+        rm -rf OFICINACARDOZO.BILLINGSERVICE/obj OFICINACARDOZO.BILLINGSERVICE/bin || true
+        echo "Limpeza concluída."
       shell: bash
       continue-on-error: true
+
+    - name: Invalidar cache do pipeline
+      run: |
+        echo "Gerando chave de cache única para forçar restore do NuGet."
+        echo "CACHE_BUSTER=$(date +%s)" >> $GITHUB_ENV
+      shell: bash
     
     - name: Exibir Dockerfile usado no build
       run: cat OFICINACARDOZO.BILLINGSERVICE/Dockerfile
@@ -43,7 +52,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}-${{ env.CACHE_BUSTER }}
 
     - name: Restore, Build & Test
       run: |
