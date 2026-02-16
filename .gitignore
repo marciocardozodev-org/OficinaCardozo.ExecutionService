@@ -1,18 +1,2 @@
-# Ignore build outputs and user-specific files
 bin/
 obj/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-# Rider
-.idea/
-*.sln.iml
-# VS Code
-.vscode/
-# Backup files
-*.bak
-# Test results
-TestResults/
-# Others
-*.log

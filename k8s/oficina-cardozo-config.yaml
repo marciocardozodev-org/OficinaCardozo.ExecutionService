@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: oficina-cardozo-config
-  labels:
-    app: oficina-cardozo-api
-data:
-  # Adicione aqui as variáveis de configuração necessárias para a aplicação
-  EXAMPLE_CONFIG: "valor-exemplo"

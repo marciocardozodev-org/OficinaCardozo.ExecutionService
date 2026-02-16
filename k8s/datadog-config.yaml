@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: datadog-config
-  labels:
-    app: oficina-cardozo-api
-data:
-  DATADOG_METRICS_URL: "https://api.datadoghq.com/api/v1/series"
-  DATADOG_HOST: "oficina-cardozo-api"

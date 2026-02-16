@@ -1,28 +1,9 @@
 version: '3.8'
-
 services:
-  oficinacardozo-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: oficinacardozo-api
+  billingservice:
+    build: .
     ports:
-      - "8080:8080"
+      - "8080:80"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/oficina.db
-      - ConfiguracoesEmail__Host=imap.gmail.com
-      - ConfiguracoesEmail__PortaImap=993
-      - ConfiguracoesEmail__PortaSmtp=587
-      - ConfiguracoesEmail__UsarSsl=true
-      - ConfiguracoesEmail__IntervaloVerificacaoMinutos=1
-      - ConfiguracoesEmail__Email=tec.marciocardozo@gmail.com
-      - ConfiguracoesEmail__Senha=${CONFIGURACOESEMAIL__SENHA}
-      - ConfiguracoesJwt__ChaveSecreta=${CONFIGURACOESJWT__CHAVESECRETA}
-    volumes:
-      - oficinadata:/app/data
-    restart: unless-stopped
-volumes:
-  oficinadata:
-    driver: local
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on: []
