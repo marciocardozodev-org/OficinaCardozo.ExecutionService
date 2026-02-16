@@ -1,3 +1,6 @@
+# CI/CD - BillingService
+# Este workflow é responsável apenas pelo BillingService.
+
 name: CI/CD - BillingService
 
 on:
@@ -5,19 +8,18 @@ on:
     branches: [ develop, homolog, master ]
     paths:
       - 'OFICINACARDOZO.BILLINGSERVICE/**'
-      - '.github/workflows/ci-cd.yml'
+      - '.github/workflows/ci-cd-billingservice.yml'
   pull_request:
     branches: [ develop, homolog, master ]
     paths:
       - 'OFICINACARDOZO.BILLINGSERVICE/**'
-      - '.github/workflows/ci-cd.yml'
+      - '.github/workflows/ci-cd-billingservice.yml'
 
 jobs:
   build-test-deploy:
     name: Build, Test & Deploy
     runs-on: ubuntu-latest
     steps:
-    # Checkout, build, test, docker build/push
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -36,7 +38,7 @@ jobs:
         echo "Gerando chave de cache única para forçar restore do NuGet."
         echo "CACHE_BUSTER=$(date +%s)" >> $GITHUB_ENV
       shell: bash
-    
+
     - name: Exibir Dockerfile usado no build
       run: cat OFICINACARDOZO.BILLINGSERVICE/Dockerfile
 
@@ -81,12 +83,9 @@ jobs:
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       id: subnets
       run: |
-        export SUBNETS=$(jq -r '.private_subnet_ids.value | map("\""+.+"\"") | join(",")' ../terraform-outputs.json)
+        export SUBNETS=$(jq -r '.private_subnet_ids.value | map("\""+. +"\"") | join(",")' ../terraform-outputs.json)
         echo "db_subnet_ids=[$SUBNETS]" >> $GITHUB_ENV
 
-
-
-    # --- Provisionamento do Banco de Dados (Terraform) ---
     - name: Configurar credenciais AWS para Terraform
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       uses: aws-actions/configure-aws-credentials@v4
@@ -94,7 +93,6 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: sa-east-1
-
 
     - name: Baixar e extrair subnets do terraform-outputs.json do S3
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
@@ -117,7 +115,6 @@ jobs:
         terraform init -input=false
         terraform plan -input=false -var="enable_db=true"
         terraform apply -auto-approve -input=false -var="enable_db=true"
-    
 
     - name: Gerar kubeconfig do EKS
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
@@ -125,7 +122,6 @@ jobs:
         export CLUSTER_NAME="oficina-cardozo-eks"
         export AWS_REGION="sa-east-1"
         aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
-
 
     - name: Criar/atualizar ConfigMap do certificado global-bundle.pem
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
