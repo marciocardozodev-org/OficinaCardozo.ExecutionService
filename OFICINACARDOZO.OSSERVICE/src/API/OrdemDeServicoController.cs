@@ -1,4 +1,3 @@
-        
 using Microsoft.AspNetCore.Mvc;
 using OFICINACARDOZO.OSSERVICE.Domain;
 using OFICINACARDOZO.OSSERVICE.Infrastructure;
@@ -199,22 +198,17 @@ namespace OFICINACARDOZO.OSSERVICE.API
         }
 
         /// <summary>
-        /// Lista Ordens de Serviço por status.
+        /// Consulta o histórico de status de uma Ordem de Serviço.
         /// </summary>
-        /// <param name="status">Status desejado (Aberta, EmAndamento, Finalizada, Cancelada)</param>
-        /// <remarks>
-        /// Exemplo de response:
-        ///
-        ///     [
-        ///         {
-        ///             "id": "guid",
-        ///             "descricao": "Troca de óleo do veículo X",
-        ///             "dataCriacao": "2026-02-15T12:00:00Z",
-        ///             "status": "Finalizada"
-        ///         }
-        ///     ]
-        /// </remarks>
-        /// <returns>Lista de OS</returns>
-        // ...existing code...
+        /// <param name="id">ID da OS</param>
+        /// <returns>Lista de status e datas</returns>
+        [HttpGet("{id}/historico")]
+        [ProducesResponseType(typeof(IEnumerable<OrdemDeServicoHistorico>), 200)]
+        public async Task<ActionResult<IEnumerable<OrdemDeServicoHistorico>>> Historico(int id)
+        {
+            var historico = await _repository.GetHistoricoAsync(id);
+            if (historico == null || !historico.Any()) return NotFound();
+            return Ok(historico);
+        }
     }
 }

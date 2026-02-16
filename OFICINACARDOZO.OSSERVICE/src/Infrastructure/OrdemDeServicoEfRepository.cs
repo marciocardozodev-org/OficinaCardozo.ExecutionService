@@ -16,18 +16,38 @@ namespace OFICINACARDOZO.OSSERVICE.Infrastructure
             _context = context;
         }
 
+
         public async Task<OrdemDeServico> AddAsync(OrdemDeServico ordem)
         {
             _context.OrdensDeServico.Add(ordem);
             await _context.SaveChangesAsync();
+            // Grava histórico inicial
+            var historico = new OrdemDeServicoHistorico
+            {
+                IdOrdemServico = ordem.Id,
+                IdStatus = ordem.IdStatus,
+                DataAlteracao = DateTime.UtcNow
+            };
+            _context.OrdensDeServicoHistorico.Add(historico);
+            await _context.SaveChangesAsync();
             return ordem;
         }
+
 
         public async Task<bool> UpdateStatusAsync(int id, int novoStatus)
         {
             var ordem = await _context.OrdensDeServico.FindAsync(id);
             if (ordem == null) return false;
             ordem.IdStatus = novoStatus;
+            await _context.SaveChangesAsync();
+            // Grava histórico de alteração
+            var historico = new OrdemDeServicoHistorico
+            {
+                IdOrdemServico = ordem.Id,
+                IdStatus = novoStatus,
+                DataAlteracao = DateTime.UtcNow
+            };
+            _context.OrdensDeServicoHistorico.Add(historico);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -50,6 +70,14 @@ namespace OFICINACARDOZO.OSSERVICE.Infrastructure
         public async Task<OrdemDeServico> GetByIdAsync(int id)
         {
             return await _context.OrdensDeServico.FindAsync(id);
+        }
+
+        public async Task<List<OrdemDeServicoHistorico>> GetHistoricoAsync(int idOrdemServico)
+        {
+            return await _context.OrdensDeServicoHistorico
+                .Where(h => h.IdOrdemServico == idOrdemServico)
+                .OrderBy(h => h.DataAlteracao)
+                .ToListAsync();
         }
     }
 }
