@@ -1,3 +1,4 @@
+# Teste de modificação automática - 16/02/2026
 # RDS PostgreSQL Free Tier
 resource "aws_db_instance" "osservice" {
   allocated_storage    = 20
