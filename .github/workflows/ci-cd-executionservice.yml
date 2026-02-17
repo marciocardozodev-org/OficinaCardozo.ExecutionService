@@ -59,9 +59,9 @@ jobs:
 
     - name: Restore, Build & Test
       run: |
-        dotnet restore OFICINACARDOZO.EXECUTIONSERVICE.csproj --verbosity minimal
-        dotnet build OFICINACARDOZO.EXECUTIONSERVICE.csproj --no-restore --configuration Release --verbosity minimal
-        dotnet test OFICINACARDOZO.EXECUTIONSERVICE.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
+        dotnet restore OFICINACARDOZO.EXECUTIONSERVICE.sln --verbosity minimal
+        dotnet build OFICINACARDOZO.EXECUTIONSERVICE.sln --no-restore --configuration Release --verbosity minimal
+        dotnet test ./tests/OficinaCardozo.ExecutionService.Tests.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=minimal"
 
     - name: Exibir arquivos publicados
       run: ls -lh publish || true
