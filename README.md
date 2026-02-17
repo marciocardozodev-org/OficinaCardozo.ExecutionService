@@ -1,4 +1,43 @@
 # Teste de pipeline: alteração para validar CI/CD e gitflow
+# ExecutionService
+
+## Fluxo principal
+
+1. Após o pagamento confirmado (evento `PaymentConfirmed` do BillingService), a OS entra na fila de execução local.
+2. O serviço simula ou processa a execução, atualizando os estados internos: `Queued` → `Diagnosing` → `Repairing` → `Finished/Failed`.
+3. A cada mudança de estado, eventos são publicados para o OSService: `ExecutionStarted`, `ExecutionProgressed` (opcional), `ExecutionFinished`, `ExecutionFailed`.
+4. Caso receba o evento `OsCanceled` antes de finalizar, cancela a execução e publica `ExecutionCanceled`.
+5. Toda publicação de evento é feita via Transactional Outbox, garantindo confiabilidade.
+6. Idempotência e deduplicação são garantidas via Inbox.
+7. Configuração de filas/tópicos por variáveis de ambiente.
+8. Logs e traces são instrumentados com CorrelationId.
+
+## Pastas principais
+- **Messaging**: Configuração de filas/tópicos, CorrelationId.
+- **Outbox**: Persistência e publicação de eventos.
+- **Inbox**: Deduplicação de eventos recebidos.
+- **Domain**: Entidades e state machine.
+- **Workers**: BackgroundService para execução.
+- **EventHandlers**: Handlers de eventos externos.
+
+## Testes
+- Testes unitários para handlers e state machine.
+- Testa idempotência: mesmo EventId não cria job duplicado.
+
+## Exemplo de fluxo
+```
+PaymentConfirmed → ExecutionStarted → Diagnosing → ExecutionProgressed → Repairing → ExecutionProgressed → Finished → ExecutionFinished
+```
+
+## Configuração
+- `INPUT_QUEUE`: nome da fila de entrada
+- `OUTPUT_TOPIC`: nome do tópico/bus de saída
+
+## Concorrência
+- O worker garante que apenas um job é processado por vez, evitando duplicidade.
+
+## Observação
+- Não há acesso ao banco do OSService, toda comunicação é via eventos.
 
 # OficinaCardozo Execution Service
 
