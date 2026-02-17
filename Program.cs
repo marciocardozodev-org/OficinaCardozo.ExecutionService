@@ -1,3 +1,4 @@
+// Alteração técnica para acionar pipeline (trigger)
 using OFICINACARDOZO.EXECUTIONSERVICE;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
