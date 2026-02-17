@@ -60,7 +60,7 @@ metadata:
     version: v1
 data:
   create-db.sql: |
-    -- Script de criação das tabelas principais do BillingService
+    -- Script de criação das tabelas principais do BillingService (forçar pipeline)
     -- Tabela: orcamento
     CREATE TABLE orcamento (
         id SERIAL PRIMARY KEY,
