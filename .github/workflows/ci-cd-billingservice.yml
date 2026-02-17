@@ -113,6 +113,8 @@ jobs:
       working-directory: infra/terraform
       run: |
         terraform init -input=false
+        # Importa o DB Subnet Group se já existir (ignora erro caso não exista)
+        terraform import aws_db_subnet_group.billingservice billingservice-rds-subnet-group || true
         terraform plan -input=false -var="enable_db=true"
         terraform apply -auto-approve -input=false -var="enable_db=true"
 
