@@ -5,7 +5,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.API
+namespace OFICINACARDOZO.EXECUTIONSERVICE.API
 {
     public class ExceptionHandlingMiddleware
     {

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.Domain
+namespace OFICINACARDOZO.EXECUTIONSERVICE.Domain
 {
     public enum StatusOrcamento { Pendente, Enviado, Aprovado, Rejeitado }
     [Table("orcamento")]

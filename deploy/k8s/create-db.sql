@@ -1,4 +1,4 @@
--- Script de criação das tabelas principais do BillingService
+-- Script de criação das tabelas principais do ExecutionService
 -- Tabela: orcamento
 CREATE TABLE orcamento (
     id SERIAL PRIMARY KEY,

@@ -1,6 +1,6 @@
-using OFICINACARDOZO.BILLINGSERVICE.Domain;
+using OFICINACARDOZO.EXECUTIONSERVICE.Domain;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.Application
+namespace OFICINACARDOZO.EXECUTIONSERVICE.Application
 {
     public class AtualizacaoStatusOsService
     {

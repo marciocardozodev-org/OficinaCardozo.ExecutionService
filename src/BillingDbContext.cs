@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using OFICINACARDOZO.BILLINGSERVICE.Domain;
+using OFICINACARDOZO.EXECUTIONSERVICE.Domain;
 
-namespace OFICINACARDOZO.BILLINGSERVICE
+namespace OFICINACARDOZO.EXECUTIONSERVICE
 {
-    public class BillingDbContext : DbContext
+    public class ExecutionDbContext : DbContext
     {
-        public BillingDbContext(DbContextOptions<BillingDbContext> options) : base(options) { }
+        public ExecutionDbContext(DbContextOptions<ExecutionDbContext> options) : base(options) { }
 
         public DbSet<Orcamento> Orcamentos { get; set; }
         public DbSet<Pagamento> Pagamentos { get; set; }

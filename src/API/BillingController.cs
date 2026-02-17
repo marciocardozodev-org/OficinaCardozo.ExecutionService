@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using OFICINACARDOZO.BILLINGSERVICE.Application;
+using OFICINACARDOZO.EXECUTIONSERVICE.Application;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.API
+namespace OFICINACARDOZO.EXECUTIONSERVICE.API
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
 
-    public class BillingController : ControllerBase
+    public class ExecutionController : ControllerBase
     {
         private readonly OrcamentoService _orcamentoService;
         private readonly PagamentoService _pagamentoService;
         private readonly AtualizacaoStatusOsService _statusOsService;
 
-        public BillingController(OrcamentoService orcamentoService, PagamentoService pagamentoService, AtualizacaoStatusOsService statusOsService)
+        public ExecutionController(OrcamentoService orcamentoService, PagamentoService pagamentoService, AtualizacaoStatusOsService statusOsService)
         {
             _orcamentoService = orcamentoService;
             _pagamentoService = pagamentoService;

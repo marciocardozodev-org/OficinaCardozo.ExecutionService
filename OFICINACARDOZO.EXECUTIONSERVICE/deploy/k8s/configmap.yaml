@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: executionservice-config
-  labels:
-    app: executionservice
-data:
-  ASPNETCORE_ENVIRONMENT: "Production"

@@ -1,4 +1,4 @@
-namespace OFICINACARDOZO.BILLINGSERVICE.Application
+namespace OFICINACARDOZO.EXECUTIONSERVICE.Application
 {
     public class ServiceOrchestrator
     {

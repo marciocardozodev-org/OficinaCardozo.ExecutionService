@@ -4,17 +4,17 @@ metadata:
   name: create-db-sql
   namespace: default
   labels:
-    app: billingservice
+    app: executionservice
     tier: db
     managed-by: pipeline
     environment: prod
-    microservice: billingservice
+    microservice: executionservice
     purpose: migration
     type: sql-script
     version: v1
 data:
   create-db.sql: |
-    -- Script de criação das tabelas principais do BillingService
+    -- Script de criação das tabelas principais do ExecutionService
     -- Tabela: orcamento
     CREATE TABLE orcamento (
         id SERIAL PRIMARY KEY,

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.Domain
+namespace OFICINACARDOZO.EXECUTIONSERVICE.Domain
 {
     [Table("atualizacao_status_os")]
     public class AtualizacaoStatusOs

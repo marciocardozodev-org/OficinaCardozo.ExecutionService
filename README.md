@@ -1,8 +1,8 @@
 # Teste de pipeline: alteração para validar CI/CD e gitflow
 
-# OficinaCardozo Billing Service
+# OficinaCardozo Execution Service
 
-Este microserviço implementa a gestão de faturamento (Billing) seguindo arquitetura em camadas, autenticação JWT, CI/CD, Docker e Kubernetes.
+Este microserviço implementa a gestão de execuções (Execution) seguindo arquitetura em camadas, autenticação JWT, CI/CD, Docker e Kubernetes.
 
 ## Sumário
 - [Requisitos](#requisitos)
@@ -36,7 +36,7 @@ Este microserviço implementa a gestão de faturamento (Billing) seguindo arquit
 1. Clone o repositório:
 	```sh
 	git clone https://github.com/marciocardozodev-org/OficinaCardozo.App.git
-	cd OficinaCardozo.App/OFICINACARDOZO.BILLINGSERVICE
+	cd OficinaCardozo.App/OFICINACARDOZO.EXECUTIONSERVICE
 	```
 2. Configure as variáveis de ambiente (exemplo para desenvolvimento):
 	```sh
@@ -57,21 +57,21 @@ Este microserviço implementa a gestão de faturamento (Billing) seguindo arquit
 ## Docker
 - Build da imagem:
   ```sh
-	docker build -t oficinacardozo-billingservice:latest .
+	docker build -t oficinacardozo-executionservice:latest .
   ```
 - Rodar localmente:
   ```sh
-	docker run -e JWT_KEY="sua-chave-secreta" -e ASPNETCORE_ENVIRONMENT=Development -p 8080:8080 oficinacardozo-billingservice:latest
+	docker run -e JWT_KEY="sua-chave-secreta" -e ASPNETCORE_ENVIRONMENT=Development -p 8080:8080 oficinacardozo-executionservice:latest
   ```
 
 ## Deploy Kubernetes
 1. Crie o secret para a chave JWT:
 	```sh
-	kubectl create secret generic billingservice-jwt-secret --from-literal=JWT_KEY="sua-chave-secreta" -n <namespace>
+	kubectl create secret generic executionservice-jwt-secret --from-literal=JWT_KEY="sua-chave-secreta" -n <namespace>
 	```
 2. Crie o ConfigMap para variáveis não sensíveis (ex: ambiente):
 	```sh
-	kubectl create configmap billingservice-config --from-literal=ASPNETCORE_ENVIRONMENT=Production -n <namespace>
+	kubectl create configmap executionservice-config --from-literal=ASPNETCORE_ENVIRONMENT=Production -n <namespace>
 	```
 	> O deployment já está configurado para ler ASPNETCORE_ENVIRONMENT do ConfigMap.
 3. Aplique os manifests:

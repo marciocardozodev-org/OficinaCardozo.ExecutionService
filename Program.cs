@@ -1,4 +1,4 @@
-using OFICINACARDOZO.BILLINGSERVICE;
+using OFICINACARDOZO.EXECUTIONSERVICE;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,14 +31,14 @@ builder.Services.AddAuthentication(options =>
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<OFICINACARDOZO.BILLINGSERVICE.API.ValidationFilter>();
+    options.Filters.Add<OFICINACARDOZO.EXECUTIONSERVICE.API.ValidationFilter>();
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "OficinaCardozo Billing Service API",
+        Title = "OficinaCardozo Execution Service API",
         Version = "v1",
         Description = "API para gestão de Ordens de Serviço.",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
@@ -49,19 +49,19 @@ builder.Services.AddSwaggerGen(options =>
     });
     // options.EnableAnnotations(); // Removido: método não existe
 });
-builder.Services.AddScoped<OFICINACARDOZO.BILLINGSERVICE.Application.PagamentoService>();
-builder.Services.AddScoped<OFICINACARDOZO.BILLINGSERVICE.Application.AtualizacaoStatusOsService>();
-builder.Services.AddScoped<OFICINACARDOZO.BILLINGSERVICE.Application.OrcamentoService>();
-builder.Services.AddScoped<OFICINACARDOZO.BILLINGSERVICE.Application.ServiceOrchestrator>();
+builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.PagamentoService>();
+builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.AtualizacaoStatusOsService>();
+builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.OrcamentoService>();
+builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.ServiceOrchestrator>();
 builder.Services.AddHealthChecks();
 
 // Configuração do DbContext para PostgreSQL via variáveis de ambiente
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "billingservice";
+var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "executionservice";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
 var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
 var postgresConnectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPassword};sslmode=Require";
-builder.Services.AddDbContext<BillingDbContext>(options =>
+builder.Services.AddDbContext<ExecutionDbContext>(options =>
     options.UseNpgsql(postgresConnectionString));
 
 var app = builder.Build();
@@ -74,7 +74,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware global de tratamento de exceções
-app.UseMiddleware<OFICINACARDOZO.BILLINGSERVICE.API.ExceptionHandlingMiddleware>();
+app.UseMiddleware<OFICINACARDOZO.EXECUTIONSERVICE.API.ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

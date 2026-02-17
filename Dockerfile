@@ -6,14 +6,14 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["OFICINACARDOZO.BILLINGSERVICE.csproj", "."]
-RUN dotnet restore "./OFICINACARDOZO.BILLINGSERVICE.csproj"
+COPY ["OFICINACARDOZO.EXECUTIONSERVICE.csproj", "."]
+RUN dotnet restore "./OFICINACARDOZO.EXECUTIONSERVICE.csproj"
 COPY . .
-RUN dotnet publish "./OFICINACARDOZO.BILLINGSERVICE.csproj" -c Release -o /app/publish
+RUN dotnet publish "./OFICINACARDOZO.EXECUTIONSERVICE.csproj" -c Release -o /app/publish
 
 # Final
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:80
-ENTRYPOINT ["dotnet", "OFICINACARDOZO.BILLINGSERVICE.dll"]
+ENTRYPOINT ["dotnet", "OFICINACARDOZO.EXECUTIONSERVICE.dll"]

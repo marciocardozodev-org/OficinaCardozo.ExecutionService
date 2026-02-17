@@ -1,11 +1,11 @@
-using OFICINACARDOZO.BILLINGSERVICE.Domain;
+using OFICINACARDOZO.EXECUTIONSERVICE.Domain;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.Application
+namespace OFICINACARDOZO.EXECUTIONSERVICE.Application
 {
     public class PagamentoService
     {
-        private readonly BillingDbContext _context;
-        public PagamentoService(BillingDbContext context)
+        private readonly ExecutionDbContext _context;
+        public PagamentoService(ExecutionDbContext context)
         {
             _context = context;
         }

@@ -1,36 +1,36 @@
-variable "billingservice_rds_instance_id" {
-  description = "Identificador único da instância RDS do BillingService."
+variable "executionservice_rds_instance_id" {
+  description = "Identificador único da instância RDS do ExecutionService."
   type        = string
-  default     = "billingservice-rds"
+  default     = "executionservice-rds"
 }
-output "billingservice_rds_host" {
-  value       = aws_db_instance.billingservice.endpoint
-  description = "Endpoint do RDS PostgreSQL do BillingService"
-}
-
-output "billingservice_rds_user" {
-  value       = var.billingservice_db_username
-  description = "Usuário do RDS do BillingService"
+output "executionservice_rds_host" {
+  value       = aws_db_instance.executionservice.endpoint
+  description = "Endpoint do RDS PostgreSQL do ExecutionService"
 }
 
-output "billingservice_rds_password" {
-  value       = var.billingservice_db_password
-  description = "Senha do RDS do BillingService"
+output "executionservice_rds_user" {
+  value       = var.executionservice_db_username
+  description = "Usuário do RDS do ExecutionService"
+}
+
+output "executionservice_rds_password" {
+  value       = var.executionservice_db_password
+  description = "Senha do RDS do ExecutionService"
   sensitive   = true
 }
 
-output "billingservice_rds_db_name" {
-  value       = var.billingservice_db_name
-  description = "Nome do banco do BillingService no RDS"
+output "executionservice_rds_db_name" {
+  value       = var.executionservice_db_name
+  description = "Nome do banco do ExecutionService no RDS"
 }
-output "billingservice_db_subnet_ids" {
+output "executionservice_db_subnet_ids" {
   value       = try(data.terraform_remote_state.eks.outputs.private_subnet_ids, [])
-  description = "Subnets privadas usadas pelo RDS do BillingService (propagadas do EKS)"
+  description = "Subnets privadas usadas pelo RDS do ExecutionService (propagadas do EKS)"
 }
 
-output "billingservice_db_security_group_ids" {
+output "executionservice_db_security_group_ids" {
   value       = try(data.terraform_remote_state.eks.outputs.eks_security_group_ids, [])
-  description = "Security Groups usados pelo RDS do BillingService (propagados do EKS)"
+  description = "Security Groups usados pelo RDS do ExecutionService (propagados do EKS)"
 }
 # Executa migrations EF Core após o RDS estar disponível
 terraform {
@@ -64,43 +64,43 @@ variable "aws_region" {
   default     = "sa-east-1"
 }
 
-variable "billingservice_app_name" {
-  description = "Prefixo para nomear recursos do BillingService."
+variable "executionservice_app_name" {
+  description = "Prefixo para nomear recursos do ExecutionService."
   type        = string
-  default     = "billingservice"
+  default     = "executionservice"
 }
 
-variable "billingservice_db_name" {
-  description = "Nome do banco de dados do BillingService."
+variable "executionservice_db_name" {
+  description = "Nome do banco de dados do ExecutionService."
   type        = string
-  default     = "billingservice"
+  default     = "executionservice"
 }
 
-variable "billingservice_db_username" {
-  description = "Usuário administrador do banco do BillingService."
+variable "executionservice_db_username" {
+  description = "Usuário administrador do banco do ExecutionService."
   type        = string
-  default     = "billingadmin"
+  default     = "executionadmin"
 }
 
-variable "billingservice_db_password" {
-  description = "Senha do banco do BillingService."
+variable "executionservice_db_password" {
+  description = "Senha do banco do ExecutionService."
   type        = string
   sensitive   = true
   default     = ""
   validation {
-    condition     = length(var.billingservice_db_password) == 0 || length(var.billingservice_db_password) >= 8
+    condition     = length(var.executionservice_db_password) == 0 || length(var.executionservice_db_password) >= 8
     error_message = "Senha inválida. Requisitos: vazio (para testes) ou mínimo 8 caracteres."
   }
 }
 
-variable "billingservice_db_subnet_ids" {
-  description = "Lista de subnets privadas para o RDS do BillingService."
+variable "executionservice_db_subnet_ids" {
+  description = "Lista de subnets privadas para o RDS do ExecutionService."
   type        = list(string)
   default     = []
 }
 
-variable "billingservice_db_security_group_ids" {
-  description = "Security Groups para o RDS do BillingService."
+variable "executionservice_db_security_group_ids" {
+  description = "Security Groups para o RDS do ExecutionService."
   type        = list(string)
   default     = []
 }
@@ -145,7 +145,7 @@ variable "db_subnet_ids" {
 variable "db_name" {
   description = "Nome do banco de dados a ser criado no RDS."
   type        = string
-  default     = "billingservice"
+  default     = "executionservice"
 }
 
 variable "db_security_group_ids" {

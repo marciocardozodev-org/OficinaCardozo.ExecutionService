@@ -6,7 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.API
+namespace OFICINACARDOZO.EXECUTIONSERVICE.API
 {
     [ApiController]
     [Route("api/[controller]")]

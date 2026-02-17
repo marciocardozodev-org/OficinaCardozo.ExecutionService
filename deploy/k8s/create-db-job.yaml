@@ -17,22 +17,22 @@ spec:
         - name: DB_HOST
           valueFrom:
             secretKeyRef:
-              name: billingservice-db-secret
+              name: executionservice-db-secret
               key: DB_HOST
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: billingservice-db-secret
+              name: executionservice-db-secret
               key: DB_USER
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: billingservice-db-secret
+              name: executionservice-db-secret
               key: DB_PASSWORD
         - name: DB_NAME
           valueFrom:
             secretKeyRef:
-              name: billingservice-db-secret
+              name: executionservice-db-secret
               key: DB_NAME
         volumeMounts:
         - name: sql-script
@@ -50,17 +50,17 @@ metadata:
   name: create-db-sql
   namespace: default
   labels:
-    app: billingservice
+    app: executionservice
     tier: db
     managed-by: pipeline
     environment: prod
-    microservice: billingservice
+    microservice: executionservice
     purpose: migration
     type: sql-script
     version: v1
 data:
   create-db.sql: |
-    -- Script de criação das tabelas principais do BillingService (forçar pipeline)
+    -- Script de criação das tabelas principais do ExecutionService (forçar pipeline)
     -- Tabela: orcamento
     CREATE TABLE orcamento (
       id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

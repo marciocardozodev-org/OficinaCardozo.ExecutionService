@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Linq;
 
-namespace OFICINACARDOZO.BILLINGSERVICE.API
+namespace OFICINACARDOZO.EXECUTIONSERVICE.API
 {
     public class ValidationFilter : IActionFilter
     {
