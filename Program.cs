@@ -49,9 +49,8 @@ builder.Services.AddSwaggerGen(options =>
     });
     // options.EnableAnnotations(); // Removido: método não existe
 });
-builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.PagamentoService>();
+builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.ExecucaoOsService>();
 builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.AtualizacaoStatusOsService>();
-builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.OrcamentoService>();
 builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.ServiceOrchestrator>();
 builder.Services.AddHealthChecks();
 
