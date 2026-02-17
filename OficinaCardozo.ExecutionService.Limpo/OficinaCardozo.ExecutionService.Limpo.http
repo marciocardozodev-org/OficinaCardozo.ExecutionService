@@ -1,6 +1,0 @@
-@OficinaCardozo.ExecutionService.Limpo_HostAddress = http://localhost:5074
-
-GET {{OficinaCardozo.ExecutionService.Limpo_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
