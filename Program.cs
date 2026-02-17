@@ -1,3 +1,4 @@
+// Trigger pipeline - alteração forçada
 // Alteração técnica para acionar pipeline (trigger)
 using OFICINACARDOZO.EXECUTIONSERVICE;
 using Microsoft.AspNetCore.Builder;
