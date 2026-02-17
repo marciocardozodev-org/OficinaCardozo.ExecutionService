@@ -7,8 +7,8 @@ namespace OFICINACARDOZO.EXECUTIONSERVICE
     {
         public ExecutionDbContext(DbContextOptions<ExecutionDbContext> options) : base(options) { }
 
-        public DbSet<Orcamento> Orcamentos { get; set; }
-        public DbSet<Pagamento> Pagamentos { get; set; }
+        // Removidos DbSets legados de Orcamento e Pagamento
+        public DbSet<ExecucaoOs> ExecucoesOs { get; set; }
         public DbSet<AtualizacaoStatusOs> AtualizacoesStatusOs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
