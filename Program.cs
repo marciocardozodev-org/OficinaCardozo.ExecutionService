@@ -1,6 +1,8 @@
 // Trigger pipeline - alteração forçada
 // Alteração técnica para acionar pipeline (trigger)
 using OFICINACARDOZO.EXECUTIONSERVICE;
+using Amazon.SQS;
+using Amazon.SimpleNotificationService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,6 +10,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using OficinaCardozo.ExecutionService.Domain;
+using OficinaCardozo.ExecutionService.Inbox;
+using OficinaCardozo.ExecutionService.Outbox;
+using OficinaCardozo.ExecutionService.EventHandlers;
+using OficinaCardozo.ExecutionService.Messaging;
+using OficinaCardozo.ExecutionService.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,15 +50,15 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "OficinaCardozo Execution Service API",
         Version = "v1",
-        Description = "API para gestão de Ordens de Serviço.",
+        Description = "API para gestão de Ordens de Serviço com processamento assíncrono e confiável.",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
             Name = "Equipe OficinaCardozo",
             Email = "contato@oficinacardozo.com"
         }
     });
-    // options.EnableAnnotations(); // Removido: método não existe
 });
+
 builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.ExecucaoOsService>();
 builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.AtualizacaoStatusOsService>();
 builder.Services.AddScoped<OFICINACARDOZO.EXECUTIONSERVICE.Application.ServiceOrchestrator>();
@@ -65,8 +73,41 @@ var postgresConnectionString = $"Host={dbHost};Database={dbName};Username={dbUse
 builder.Services.AddDbContext<ExecutionDbContext>(options =>
     options.UseNpgsql(postgresConnectionString));
 
-var app = builder.Build();
+// ============= EXECUTIONSERVICE MESSAGING & EXECUTION FLOW =============
 
+// Configuração de Messaging (SQS/SNS)
+var inputQueue = Environment.GetEnvironmentVariable("SQS_QUEUE_URL") ?? "http://localhost:9324/queue/billing-events";
+var outputTopic = Environment.GetEnvironmentVariable("SNS_TOPIC_ARN") ?? "arn:aws:sns:us-east-1:000000000000:execution-events";
+var messagingConfig = new MessagingConfig
+{
+    InputQueue = inputQueue,
+    OutputTopic = outputTopic
+};
+builder.Services.AddSingleton(messagingConfig);
+
+// AWS Services
+builder.Services.AddAWSService<IAmazonSQS>();
+builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
+
+// Serviços em memória (substituir por DB futuramente)
+builder.Services.AddSingleton<List<ExecutionJob>>();
+
+// Serviços de Inbox/Outbox
+builder.Services.AddSingleton<IInboxService, InboxService>();
+builder.Services.AddSingleton<IOutboxService, OutboxService>();
+
+// Event Handlers
+builder.Services.AddScoped<PaymentConfirmedHandler>();
+builder.Services.AddScoped<OsCanceledHandler>();
+
+// Background Services (Workers e Consumidores)
+builder.Services.AddHostedService<ExecutionWorker>();
+builder.Services.AddHostedService<SqsConsumer>();
+builder.Services.AddHostedService<SnsPublisher>();
+
+// ========================================================================
+
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
