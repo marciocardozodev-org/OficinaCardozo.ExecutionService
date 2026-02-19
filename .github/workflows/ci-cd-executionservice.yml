@@ -135,6 +135,21 @@ jobs:
           --from-file=global-bundle.pem=global-bundle.pe \
           -n default --dry-run=client -o yaml | kubectl apply -f -
 
+    - name: Aplicar ConfigMap aws-messaging-config
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      run: kubectl apply -f deploy/k8s/aws-messaging-config.yaml
+
+    - name: Garantir secret aws-messaging-secrets
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        kubectl create secret generic aws-messaging-secrets \
+          --from-literal=AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+          --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+          -n default --dry-run=client -o yaml | kubectl apply -f -
+
     - name: Garantir secret executionservice-db-secret
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/homolog'
       env:
