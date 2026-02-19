@@ -76,8 +76,15 @@ builder.Services.AddDbContext<ExecutionDbContext>(options =>
 // ============= EXECUTIONSERVICE MESSAGING & EXECUTION FLOW =============
 
 // Configuração de Messaging (SQS/SNS)
-var inputQueue = Environment.GetEnvironmentVariable("SQS_QUEUE_URL") ?? "http://localhost:9324/queue/billing-events";
-var outputTopic = Environment.GetEnvironmentVariable("SNS_TOPIC_ARN") ?? "arn:aws:sns:us-east-1:000000000000:execution-events";
+// Usa variáveis do ConfigMap aws-messaging-config (produção) com fallback para LocalStack (dev)
+var inputQueue = Environment.GetEnvironmentVariable("AWS_SQS_QUEUE_BILLING") 
+    ?? Environment.GetEnvironmentVariable("SQS_QUEUE_URL") 
+    ?? "http://localhost:9324/queue/billing-events";
+
+var outputTopic = Environment.GetEnvironmentVariable("AWS_SNS_TOPIC_EXECUTION_EVENTS") 
+    ?? Environment.GetEnvironmentVariable("SNS_TOPIC_ARN") 
+    ?? "arn:aws:sns:us-east-1:000000000000:execution-events";
+
 var messagingConfig = new MessagingConfig
 {
     InputQueue = inputQueue,
