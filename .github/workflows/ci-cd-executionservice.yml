@@ -114,10 +114,6 @@ jobs:
       working-directory: infra/terraform
       run: |
         terraform init -input=false
-        # Importa o DB Subnet Group se já existir (ignora erro caso não exista)
-        terraform import aws_db_subnet_group.executionservice executionservice-rds-subnet-group || true
-        # Importa a instância RDS se já existir (ignora erro caso não exista)
-        terraform import aws_db_instance.executionservice executionservice-rds || true
         terraform plan -input=false -var="enable_db=true"
         terraform apply -auto-approve -input=false -var="enable_db=true"
 
