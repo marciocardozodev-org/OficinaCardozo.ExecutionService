@@ -17,6 +17,11 @@ spec:
         image: marciocardozodev/oficinacardozo-executionservice:${IMAGE_TAG}
         ports:
         - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: aws-messaging-config
+        - secretRef:
+            name: aws-messaging-secrets
         env:
         - name: ASPNETCORE_ENVIRONMENT
           valueFrom:
