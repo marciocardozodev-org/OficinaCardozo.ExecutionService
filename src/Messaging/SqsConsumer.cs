@@ -85,29 +85,52 @@ namespace OficinaCardozo.ExecutionService.Messaging
         {
             try
             {
-                // SNS envelope via SQS - extrai Message e MessageAttributes
+                JsonElement payload;
+                string eventId;
+                string correlationId;
+                string eventType;
+
+                // Com RawMessageDelivery=true, a mensagem vem diretamente como JSON (sem envelope SNS)
+                // Tentar detectar o formato
                 var snsMessage = JsonSerializer.Deserialize<SnsMessageEnvelope>(message.Body);
-                if (snsMessage == null)
+                
+                if (snsMessage != null && !string.IsNullOrEmpty(snsMessage.Message))
                 {
-                    _logger.LogWarning("Mensagem SNS inválida recebida");
-                    return;
+                    // Formato: Envelope SNS (RawMessageDelivery=false)
+                    _logger.LogDebug("Mensagem com envelope SNS detectada");
+                    payload = JsonSerializer.Deserialize<JsonElement>(snsMessage.Message);
+                    
+                    eventId = snsMessage.MessageAttributes.ContainsKey("EventId")
+                        ? snsMessage.MessageAttributes["EventId"].Value
+                        : Guid.NewGuid().ToString();
+
+                    correlationId = snsMessage.MessageAttributes.ContainsKey("CorrelationId")
+                        ? snsMessage.MessageAttributes["CorrelationId"].Value
+                        : Guid.NewGuid().ToString();
+
+                    eventType = snsMessage.MessageAttributes.ContainsKey("EventType")
+                        ? snsMessage.MessageAttributes["EventType"].Value
+                        : snsMessage.TopicArn?.Split(':').Last() ?? "Unknown";
                 }
+                else
+                {
+                    // Formato: Raw Message (RawMessageDelivery=true)
+                    _logger.LogDebug("Mensagem raw (sem envelope SNS) detectada");
+                    payload = JsonSerializer.Deserialize<JsonElement>(message.Body);
+                    
+                    // Com RawMessageDelivery, os MessageAttributes vêm do SQS Message
+                    eventId = message.MessageAttributes.ContainsKey("EventId")
+                        ? message.MessageAttributes["EventId"].StringValue
+                        : Guid.NewGuid().ToString();
 
-                // Parse do payload JSON
-                var payload = JsonSerializer.Deserialize<JsonElement>(snsMessage.Message);
+                    correlationId = message.MessageAttributes.ContainsKey("CorrelationId")
+                        ? message.MessageAttributes["CorrelationId"].StringValue
+                        : Guid.NewGuid().ToString();
 
-                // Extrai EventId e CorrelationId dos MessageAttributes
-                string eventId = snsMessage.MessageAttributes.ContainsKey("EventId")
-                    ? snsMessage.MessageAttributes["EventId"].Value
-                    : Guid.NewGuid().ToString();
-
-                string correlationId = snsMessage.MessageAttributes.ContainsKey("CorrelationId")
-                    ? snsMessage.MessageAttributes["CorrelationId"].Value
-                    : Guid.NewGuid().ToString();
-
-                string eventType = snsMessage.MessageAttributes.ContainsKey("EventType")
-                    ? snsMessage.MessageAttributes["EventType"].Value
-                    : snsMessage.TopicArn.Split(':').Last();
+                    eventType = message.MessageAttributes.ContainsKey("EventType")
+                        ? message.MessageAttributes["EventType"].StringValue
+                        : "Unknown";
+                }
 
                 _logger.LogInformation(
                     "[CorrelationId: {CorrelationId}] Processando evento {EventType} com EventId {EventId}",
