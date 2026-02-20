@@ -62,13 +62,22 @@ namespace OficinaCardozo.ExecutionService.Messaging
 
                         foreach (var message in response.Messages)
                         {
-                            await ProcessMessageAsync(message, stoppingToken);
+                            var processed = await ProcessMessageAsync(message, stoppingToken);
 
-                            // Deletar mensagem após processamento bem-sucedido
-                            await _sqsClient.DeleteMessageAsync(
-                                _config.InputQueue,
-                                message.ReceiptHandle,
-                                stoppingToken);
+                            if (processed)
+                            {
+                                // Deletar mensagem após processamento bem-sucedido
+                                await _sqsClient.DeleteMessageAsync(
+                                    _config.InputQueue,
+                                    message.ReceiptHandle,
+                                    stoppingToken);
+                            }
+                            else
+                            {
+                                _logger.LogWarning(
+                                    "Mensagem nao processada. Mantendo na fila para reprocesso. MessageId: {MessageId}",
+                                    message.MessageId);
+                            }
                         }
                     }
                 }
@@ -81,10 +90,19 @@ namespace OficinaCardozo.ExecutionService.Messaging
             }
         }
 
-        private async Task ProcessMessageAsync(Message message, CancellationToken stoppingToken)
+        private async Task<bool> ProcessMessageAsync(Message message, CancellationToken stoppingToken)
         {
             try
             {
+                var bodyPreview = GetBodyPreview(message.Body, 500);
+                var attributesSummary = GetMessageAttributesSummary(message.MessageAttributes);
+
+                _logger.LogInformation(
+                    "Recebida mensagem SQS. MessageId: {MessageId} Attributes: {Attributes} BodyPreview: {BodyPreview}",
+                    message.MessageId,
+                    attributesSummary,
+                    bodyPreview);
+
                 JsonElement payload;
                 string eventId;
                 string correlationId;
@@ -183,11 +201,52 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         "[CorrelationId: {CorrelationId}] Tipo de evento desconhecido: {EventType}",
                         correlationId, eventType);
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar mensagem SQS");
+                var bodyPreview = GetBodyPreview(message.Body, 500);
+                var attributesSummary = GetMessageAttributesSummary(message.MessageAttributes);
+
+                _logger.LogError(
+                    ex,
+                    "Erro ao processar mensagem SQS. MessageId: {MessageId} Attributes: {Attributes} BodyPreview: {BodyPreview}",
+                    message.MessageId,
+                    attributesSummary,
+                    bodyPreview);
+
+                return false;
             }
+        }
+
+        private static string GetBodyPreview(string body, int maxLength)
+        {
+            if (string.IsNullOrEmpty(body))
+            {
+                return "<empty>";
+            }
+
+            return body.Length <= maxLength
+                ? body
+                : body.Substring(0, maxLength) + "...";
+        }
+
+        private static string GetMessageAttributesSummary(Dictionary<string, Amazon.SQS.Model.MessageAttributeValue> attributes)
+        {
+            if (attributes == null || attributes.Count == 0)
+            {
+                return "<none>";
+            }
+
+            var parts = new List<string>();
+            foreach (var entry in attributes)
+            {
+                var value = entry.Value?.StringValue ?? entry.Value?.BinaryValue?.ToString() ?? "<null>";
+                parts.Add($"{entry.Key}={value}");
+            }
+
+            return string.Join(", ", parts);
         }
 
         // SNS envelope padrão ao ser entregue via SQS
