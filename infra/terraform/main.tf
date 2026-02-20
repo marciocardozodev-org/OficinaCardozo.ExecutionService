@@ -64,6 +64,12 @@ variable "aws_region" {
   default     = "sa-east-1"
 }
 
+variable "environment" {
+  description = "Ambiente de deployment (prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}
+
 variable "executionservice_app_name" {
   description = "Prefixo para nomear recursos do ExecutionService."
   type        = string
