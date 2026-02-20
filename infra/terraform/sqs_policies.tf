@@ -19,21 +19,21 @@ data "aws_sqs_queue" "execution_events" {
 resource "aws_sns_topic_subscription" "execution_started_to_billing_events" {
   topic_arn            = aws_sns_topic.execution_started.arn
   protocol             = "sqs"
-  endpoint             = data.aws_sqs_queue.billing_events.arn
+  endpoint             = data.aws_sqs_queue.billing_events.url
   raw_message_delivery = true
 }
 
 resource "aws_sns_topic_subscription" "execution_finished_to_billing_events" {
   topic_arn            = aws_sns_topic.execution_finished.arn
   protocol             = "sqs"
-  endpoint             = data.aws_sqs_queue.billing_events.arn
+  endpoint             = data.aws_sqs_queue.billing_events.url
   raw_message_delivery = true
 }
 
 resource "aws_sns_topic_subscription" "execution_events_to_execution_events_queue" {
   topic_arn            = aws_sns_topic.execution_events.arn
   protocol             = "sqs"
-  endpoint             = data.aws_sqs_queue.execution_events.arn
+  endpoint             = data.aws_sqs_queue.execution_events.url
   raw_message_delivery = true
 }
 
