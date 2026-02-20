@@ -1,6 +1,8 @@
 # Teste de pipeline: alteração para validar CI/CD e gitflow
 # ExecutionService
 
+> **Status**: 🚀 SNS→SQS Integration implementada com URLs corretas e Terraform IaC
+
 ## Fluxo principal
 
 1. Após o pagamento confirmado (evento `PaymentConfirmed` do BillingService), a OS entra na fila de execução local.
