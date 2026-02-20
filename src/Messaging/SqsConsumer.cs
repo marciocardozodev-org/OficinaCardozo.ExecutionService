@@ -158,8 +158,18 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 if (eventType == "PaymentConfirmed")
                 {
                     var osId = payload.GetProperty("OsId").GetString();
-                    var paymentId = payload.GetProperty("PaymentId").GetString();
-                    var amount = payload.GetProperty("Amount").GetDecimal();
+                    
+                    // Compatibilidade com formatos em inglês e português
+                    var paymentId = payload.TryGetProperty("PaymentId", out var paymentIdProp) 
+                        ? paymentIdProp.GetString()
+                        : payload.TryGetProperty("ProviderPaymentId", out var providerIdProp)
+                            ? providerIdProp.GetString()
+                            : null;
+                    
+                    var amount = payload.TryGetProperty("Amount", out var amountProp)
+                        ? amountProp.GetDecimal()
+                        : payload.GetProperty("Valor").GetDecimal();
+                    
                     var status = payload.GetProperty("Status").GetString();
 
                     var evt = new PaymentConfirmedEvent
