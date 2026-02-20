@@ -17,21 +17,21 @@ data "aws_sqs_queue" "execution_events" {
 # ============================================================================
 
 resource "aws_sns_topic_subscription" "execution_started_to_billing_events" {
-  topic_arn            = "arn:aws:sns:sa-east-1:953082827427:execution-started"
+  topic_arn            = aws_sns_topic.execution_started.arn
   protocol             = "sqs"
   endpoint             = data.aws_sqs_queue.billing_events.arn
   raw_message_delivery = true
 }
 
 resource "aws_sns_topic_subscription" "execution_finished_to_billing_events" {
-  topic_arn            = "arn:aws:sns:sa-east-1:953082827427:execution-finished"
+  topic_arn            = aws_sns_topic.execution_finished.arn
   protocol             = "sqs"
   endpoint             = data.aws_sqs_queue.billing_events.arn
   raw_message_delivery = true
 }
 
 resource "aws_sns_topic_subscription" "execution_events_to_execution_events_queue" {
-  topic_arn            = "arn:aws:sns:sa-east-1:953082827427:execution-events"
+  topic_arn            = aws_sns_topic.execution_events.arn
   protocol             = "sqs"
   endpoint             = data.aws_sqs_queue.execution_events.arn
   raw_message_delivery = true
@@ -59,8 +59,8 @@ resource "aws_sqs_queue_policy" "billing_events_allow_execution_sns" {
         Condition = {
           ArnEquals = {
             "aws:SourceArn" = [
-              "arn:aws:sns:sa-east-1:953082827427:execution-started",
-              "arn:aws:sns:sa-east-1:953082827427:execution-finished"
+              aws_sns_topic.execution_started.arn,
+              aws_sns_topic.execution_finished.arn
             ]
           }
         }
@@ -87,7 +87,7 @@ resource "aws_sqs_queue_policy" "execution_events_allow_execution_sns" {
         Condition = {
           ArnEquals = {
             "aws:SourceArn" = [
-              "arn:aws:sns:sa-east-1:953082827427:execution-events"
+              aws_sns_topic.execution_events.arn
             ]
           }
         }
