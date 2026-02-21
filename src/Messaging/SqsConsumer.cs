@@ -170,7 +170,11 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         ? amountProp.GetDecimal()
                         : payload.GetProperty("Valor").GetDecimal();
                     
-                    var status = payload.GetProperty("Status").GetString();
+                    // Status pode vir como string ou int
+                    var statusProp = payload.GetProperty("Status");
+                    var status = statusProp.ValueKind == System.Text.Json.JsonValueKind.Number
+                        ? statusProp.GetInt32().ToString()
+                        : statusProp.GetString();
 
                     var evt = new PaymentConfirmedEvent
                     {
