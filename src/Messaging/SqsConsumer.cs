@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OficinaCardozo.ExecutionService.EventHandlers;
@@ -19,22 +20,19 @@ namespace OficinaCardozo.ExecutionService.Messaging
     {
         private readonly IAmazonSQS _sqsClient;
         private readonly MessagingConfig _config;
-        private readonly PaymentConfirmedHandler _paymentHandler;
-        private readonly OsCanceledHandler _osCanceledHandler;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<SqsConsumer> _logger;
         private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(10);
 
         public SqsConsumer(
             IAmazonSQS sqsClient,
             MessagingConfig config,
-            PaymentConfirmedHandler paymentHandler,
-            OsCanceledHandler osCanceledHandler,
+            IServiceScopeFactory scopeFactory,
             ILogger<SqsConsumer> logger)
         {
             _sqsClient = sqsClient;
             _config = config;
-            _paymentHandler = paymentHandler;
-            _osCanceledHandler = osCanceledHandler;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
@@ -157,6 +155,9 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 // Rotear para o handler apropriado
                 if (eventType == "PaymentConfirmed")
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var paymentHandler = scope.ServiceProvider.GetRequiredService<PaymentConfirmedHandler>();
+                    
                     var osId = payload.GetProperty("OsId").GetString();
                     
                     // Compatibilidade com formatos em inglês e português
@@ -186,13 +187,16 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         CorrelationId = correlationId
                     };
 
-                    await _paymentHandler.HandleAsync(evt);
+                    await paymentHandler.HandleAsync(evt);
                     _logger.LogInformation(
                         "[CorrelationId: {CorrelationId}] PaymentConfirmed processado para OS {OsId}",
                         correlationId, osId);
                 }
                 else if (eventType == "OsCanceled")
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var osCanceledHandler = scope.ServiceProvider.GetRequiredService<OsCanceledHandler>();
+                    
                     var osId = payload.GetProperty("OsId").GetString();
                     var reason = payload.GetProperty("Reason").GetString();
 
@@ -204,7 +208,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         CorrelationId = correlationId
                     };
 
-                    await _osCanceledHandler.HandleAsync(evt);
+                    await osCanceledHandler.HandleAsync(evt);
                     _logger.LogInformation(
                         "[CorrelationId: {CorrelationId}] OsCanceled processado para OS {OsId}",
                         correlationId, osId);

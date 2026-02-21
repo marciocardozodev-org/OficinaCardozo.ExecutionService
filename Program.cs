@@ -96,12 +96,9 @@ builder.Services.AddSingleton(messagingConfig);
 builder.Services.AddAWSService<IAmazonSQS>();
 builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
 
-// Serviços em memória (substituir por DB futuramente)
-builder.Services.AddSingleton<List<ExecutionJob>>();
-
-// Serviços de Inbox/Outbox
-builder.Services.AddSingleton<IInboxService, InboxService>();
-builder.Services.AddSingleton<IOutboxService, OutboxService>();
+// Serviços de Inbox/Outbox (Scoped para usar DbContext)
+builder.Services.AddScoped<IInboxService, InboxService>();
+builder.Services.AddScoped<IOutboxService, OutboxService>();
 
 // Event Handlers
 builder.Services.AddScoped<PaymentConfirmedHandler>();

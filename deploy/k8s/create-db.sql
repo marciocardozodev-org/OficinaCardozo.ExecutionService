@@ -18,3 +18,38 @@ CREATE TABLE execucao_os (
     finalizado BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX idx_execucao_os_ordem_servico_id ON execucao_os(ordem_servico_id);
+
+-- Tabela: ExecutionJobs (nova arquitetura de processamento)
+CREATE TABLE IF NOT EXISTS "ExecutionJobs" (
+    "Id" UUID PRIMARY KEY,
+    "OsId" VARCHAR(50) NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Attempt" INTEGER NOT NULL DEFAULT 1,
+    "LastError" VARCHAR(500),
+    "CreatedAt" TIMESTAMP NOT NULL,
+    "UpdatedAt" TIMESTAMP,
+    "FinishedAt" TIMESTAMP,
+    "CorrelationId" VARCHAR(100)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_ExecutionJobs_OsId" ON "ExecutionJobs"("OsId");
+
+-- Tabela: InboxEvents (idempotency pattern)
+CREATE TABLE IF NOT EXISTS "InboxEvents" (
+    "Id" UUID PRIMARY KEY,
+    "EventId" VARCHAR(100) NOT NULL,
+    "EventType" VARCHAR(100) NOT NULL,
+    "ReceivedAt" TIMESTAMP NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_InboxEvents_EventId" ON "InboxEvents"("EventId");
+
+-- Tabela: OutboxEvents (reliable publishing pattern)
+CREATE TABLE IF NOT EXISTS "OutboxEvents" (
+    "Id" UUID PRIMARY KEY,
+    "EventType" VARCHAR(100) NOT NULL,
+    "Payload" TEXT NOT NULL,
+    "CorrelationId" VARCHAR(100),
+    "CreatedAt" TIMESTAMP NOT NULL,
+    "Published" BOOLEAN NOT NULL DEFAULT FALSE,
+    "PublishedAt" TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "IX_OutboxEvents_Published" ON "OutboxEvents"("Published");
