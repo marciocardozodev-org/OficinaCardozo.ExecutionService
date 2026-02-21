@@ -45,36 +45,43 @@ namespace OficinaCardozo.ExecutionService.Messaging
             {
                 try
                 {
-                    _logger.LogInformation("SQS Consumer: Iniciando polling (aguardando ate 10s por mensagens)...");
+                    _logger.LogInformation("SQS Consumer: Iniciando polling. QueueUrl: {QueueUrl}, MaxMessages: 10, WaitTime: 10s", _config.InputQueue);
                     
-                    var response = await _sqsClient.ReceiveMessageAsync(
-                        new ReceiveMessageRequest
-                        {
-                            QueueUrl = _config.InputQueue,
-                            MaxNumberOfMessages = 10,
-                            WaitTimeSeconds = 10,
-                            MessageAttributeNames = new List<string> { "All" }
-                        },
-                        stoppingToken);
+                    var request = new ReceiveMessageRequest
+                    {
+                        QueueUrl = _config.InputQueue,
+                        MaxNumberOfMessages = 10,
+                        WaitTimeSeconds = 10,
+                        MessageAttributeNames = new List<string> { "All" }
+                    };
+                    
+                    _logger.LogInformation("SQS Consumer: Chamando ReceiveMessageAsync com request: QueueUrl={QueueUrl}, Max={Max}, Wait={Wait}", 
+                        request.QueueUrl, request.MaxNumberOfMessages, request.WaitTimeSeconds);
+                    
+                    var response = await _sqsClient.ReceiveMessageAsync(request, stoppingToken);
 
-                    _logger.LogInformation("SQS Consumer: ReceiveMessageAsync retornou. Messages count: {Count}", response.Messages?.Count ?? 0);
+                    _logger.LogInformation("SQS Consumer: ReceiveMessageAsync retornou com sucesso. Messages count: {Count}, Response object null: {IsNull}", 
+                        response?.Messages?.Count ?? 0, response == null);
 
                     if (response.Messages != null && response.Messages.Count > 0)
                     {
-                        _logger.LogInformation("Recebidas {Count} mensagens da fila", response.Messages.Count);
+                        _logger.LogInformation("Recebidas {Count} mensagens da fila SQS", response.Messages.Count);
 
                         foreach (var message in response.Messages)
                         {
+                            _logger.LogInformation("SQS Consumer: Processando mensagem {MessageId}...", message.MessageId);
                             var processed = await ProcessMessageAsync(message, stoppingToken);
+                            _logger.LogInformation("SQS Consumer: ProcessMessageAsync retornou {Result} para MessageId {MessageId}", processed, message.MessageId);
 
                             if (processed)
                             {
+                                _logger.LogInformation("SQS Consumer: Deletando mensagem {MessageId} da fila...", message.MessageId);
                                 // Deletar mensagem após processamento bem-sucedido
                                 await _sqsClient.DeleteMessageAsync(
                                     _config.InputQueue,
                                     message.ReceiptHandle,
                                     stoppingToken);
-                                _logger.LogInformation("Mensagem {MessageId} deletada da fila", message.MessageId);
+                                _logger.LogInformation("SQS Consumer: Mensagem {MessageId} deletada com sucesso", message.MessageId);
                             }
                             else
                             {
@@ -115,16 +122,17 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 var attributesSummary = GetMessageAttributesSummary(message.MessageAttributes);
 
                 _logger.LogInformation(
-                    "Recebida mensagem SQS. MessageId: {MessageId} Attributes: {Attributes} BodyPreview: {BodyPreview}",
+                    "ProcessMessageAsync START: MessageId={MessageId}, Body={Body}, Attributes={Attributes}",
                     message.MessageId,
-                    attributesSummary,
-                    bodyPreview);
+                    bodyPreview,
+                    attributesSummary);
 
                 JsonElement payload;
                 string eventId;
                 string correlationId;
                 string eventType;
 
+                _logger.LogInformation("ProcessMessageAsync: Tentando fazer parse do SnsMessageEnvelope...");
                 // Com RawMessageDelivery=true, a mensagem vem diretamente como JSON (sem envelope SNS)
                 // Tentar detectar o formato
                 var snsMessage = JsonSerializer.Deserialize<SnsMessageEnvelope>(message.Body);
@@ -150,7 +158,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 else
                 {
                     // Formato: Raw Message (RawMessageDelivery=true)
-                    _logger.LogDebug("Mensagem raw (sem envelope SNS) detectada");
+                    _logger.LogInformation("ProcessMessageAsync: Mensagem raw (sem envelope SNS) detectada. Fazendo parse direto do body");
                     payload = JsonSerializer.Deserialize<JsonElement>(message.Body);
                     
                     // Com RawMessageDelivery, os MessageAttributes vêm do SQS Message
@@ -239,6 +247,9 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         correlationId, eventType);
                 }
 
+                _logger.LogInformation(
+                    "[CorrelationId: {CorrelationId}] Processamento concluído com SUCESSO para evento {EventType}. Retornando true.",
+                    correlationId, eventType);
                 return true;
             }
             catch (Exception ex)
@@ -248,10 +259,13 @@ namespace OficinaCardozo.ExecutionService.Messaging
 
                 _logger.LogError(
                     ex,
-                    "Erro ao processar mensagem SQS. MessageId: {MessageId} Attributes: {Attributes} BodyPreview: {BodyPreview}",
+                    "ERRO em ProcessMessageAsync: MessageId={MessageId}, ExceptionType={ExceptionType}, Message={ExceptionMessage}, Attributes={Attributes}, BodyPreview={Body}, StackTrace={StackTrace}",
                     message.MessageId,
+                    ex.GetType().Name,
+                    ex.Message,
                     attributesSummary,
-                    bodyPreview);
+                    bodyPreview,
+                    ex.StackTrace);
 
                 return false;
             }
