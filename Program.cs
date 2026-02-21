@@ -1,5 +1,5 @@
-// Trigger pipeline - alteração forçada
-// Alteração técnica para acionar pipeline (trigger)
+// Trigger pipeline - persistência de ExecutionJob, InboxEvents e OutboxEvents em banco de dados
+// Alteração técnica para acionar pipeline (trigger) - migração completa para DbContext
 using OFICINACARDOZO.EXECUTIONSERVICE;
 using Amazon.SQS;
 using Amazon.SimpleNotificationService;
