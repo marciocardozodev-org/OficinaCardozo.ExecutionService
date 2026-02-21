@@ -1,7 +1,10 @@
 using System;
-using System.Threading.Tasks;
-using OficinaCardozo.ExecutionService.Outbox;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using OFICINACARDOZO.EXECUTIONSERVICE;
+using OficinaCardozo.ExecutionService.Outbox;
 
 namespace OficinaCardozo.ExecutionService.Outbox
 {
@@ -14,28 +17,35 @@ namespace OficinaCardozo.ExecutionService.Outbox
 
     public class OutboxService : IOutboxService
     {
-        private readonly List<OutboxEvent> _events = new(); // Simulação, trocar por persistência real
+        private readonly ExecutionDbContext _context;
 
-        public Task AddEventAsync(OutboxEvent evt)
+        public OutboxService(ExecutionDbContext context)
         {
-            _events.Add(evt);
-            return Task.CompletedTask;
+            _context = context;
         }
 
-        public Task MarkAsPublishedAsync(Guid id)
+        public async Task AddEventAsync(OutboxEvent evt)
         {
-            var evt = _events.Find(e => e.Id == id);
+            await _context.OutboxEvents.AddAsync(evt);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAsPublishedAsync(Guid id)
+        {
+            var evt = await _context.OutboxEvents.FindAsync(id);
             if (evt != null)
             {
                 evt.Published = true;
                 evt.PublishedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
-            return Task.CompletedTask;
         }
 
-        public Task<List<OutboxEvent>> GetUnpublishedEventsAsync()
+        public async Task<List<OutboxEvent>> GetUnpublishedEventsAsync()
         {
-            return Task.FromResult(_events.FindAll(e => !e.Published));
+            return await _context.OutboxEvents
+                .Where(e => !e.Published)
+                .ToListAsync();
         }
     }
 }

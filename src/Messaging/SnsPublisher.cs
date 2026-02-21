@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OficinaCardozo.ExecutionService.Outbox;
@@ -18,19 +19,19 @@ namespace OficinaCardozo.ExecutionService.Messaging
     {
         private readonly IAmazonSimpleNotificationService _snsClient;
         private readonly MessagingConfig _config;
-        private readonly IOutboxService _outbox;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<SnsPublisher> _logger;
         private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
 
         public SnsPublisher(
             IAmazonSimpleNotificationService snsClient,
             MessagingConfig config,
-            IOutboxService outbox,
+            IServiceScopeFactory scopeFactory,
             ILogger<SnsPublisher> logger)
         {
             _snsClient = snsClient;
             _config = config;
-            _outbox = outbox;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
@@ -42,7 +43,10 @@ namespace OficinaCardozo.ExecutionService.Messaging
             {
                 try
                 {
-                    var unpublishedEvents = await _outbox.GetUnpublishedEventsAsync();
+                    using var scope = _scopeFactory.CreateScope();
+                    var outbox = scope.ServiceProvider.GetRequiredService<IOutboxService>();
+
+                    var unpublishedEvents = await outbox.GetUnpublishedEventsAsync();
 
                     if (unpublishedEvents.Count > 0)
                     {
@@ -50,7 +54,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
 
                         foreach (var evt in unpublishedEvents)
                         {
-                            await PublishEventAsync(evt, stoppingToken);
+                            await PublishEventAsync(evt, outbox, stoppingToken);
                         }
                     }
                 }
@@ -63,7 +67,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
             }
         }
 
-        private async Task PublishEventAsync(OutboxEvent evt, CancellationToken stoppingToken)
+        private async Task PublishEventAsync(OutboxEvent evt, IOutboxService outbox, CancellationToken stoppingToken)
         {
             try
             {
@@ -127,7 +131,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 var response = await _snsClient.PublishAsync(request, stoppingToken);
 
                 // Marcar como publicado
-                await _outbox.MarkAsPublishedAsync(evt.Id);
+                await outbox.MarkAsPublishedAsync(evt.Id);
 
                 _logger.LogInformation(
                     "[CorrelationId: {CorrelationId}] Evento {EventType} publicado com MessageId {MessageId}",
