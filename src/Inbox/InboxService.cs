@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using OFICINACARDOZO.EXECUTIONSERVICE;
 using OficinaCardozo.ExecutionService.Inbox;
 
 namespace OficinaCardozo.ExecutionService.Inbox
@@ -13,17 +16,22 @@ namespace OficinaCardozo.ExecutionService.Inbox
 
     public class InboxService : IInboxService
     {
-        private readonly HashSet<string> _eventIds = new(); // Simulação, trocar por persistência real
+        private readonly ExecutionDbContext _context;
 
-        public Task<bool> IsDuplicateAsync(string eventId)
+        public InboxService(ExecutionDbContext context)
         {
-            return Task.FromResult(_eventIds.Contains(eventId));
+            _context = context;
         }
 
-        public Task AddEventAsync(InboxEvent evt)
+        public async Task<bool> IsDuplicateAsync(string eventId)
         {
-            _eventIds.Add(evt.EventId);
-            return Task.CompletedTask;
+            return await _context.InboxEvents.AnyAsync(e => e.EventId == eventId);
+        }
+
+        public async Task AddEventAsync(InboxEvent evt)
+        {
+            await _context.InboxEvents.AddAsync(evt);
+            await _context.SaveChangesAsync();
         }
     }
 }
