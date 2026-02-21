@@ -39,11 +39,14 @@ namespace OficinaCardozo.ExecutionService.Messaging
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("SQS Consumer iniciado. Ouvindo fila: {Queue}", _config.InputQueue);
+            _logger.LogInformation("SQS Consumer ExecuteAsync: Entrando no loop principal");
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
+                    _logger.LogInformation("SQS Consumer: Iniciando polling (aguardando ate 10s por mensagens)...");
+                    
                     var response = await _sqsClient.ReceiveMessageAsync(
                         new ReceiveMessageRequest
                         {
@@ -54,7 +57,9 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         },
                         stoppingToken);
 
-                    if (response.Messages.Count > 0)
+                    _logger.LogInformation("SQS Consumer: ReceiveMessageAsync retornou. Messages count: {Count}", response.Messages?.Count ?? 0);
+
+                    if (response.Messages != null && response.Messages.Count > 0)
                     {
                         _logger.LogInformation("Recebidas {Count} mensagens da fila", response.Messages.Count);
 
@@ -69,6 +74,7 @@ namespace OficinaCardozo.ExecutionService.Messaging
                                     _config.InputQueue,
                                     message.ReceiptHandle,
                                     stoppingToken);
+                                _logger.LogInformation("Mensagem {MessageId} deletada da fila", message.MessageId);
                             }
                             else
                             {
@@ -78,14 +84,27 @@ namespace OficinaCardozo.ExecutionService.Messaging
                             }
                         }
                     }
+                    else
+                    {
+                        _logger.LogInformation("SQS Consumer: Nenhuma mensagem recebida neste polling");
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    _logger.LogInformation("SQS Consumer: Operacao cancelada (shutdown graceful)");
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Erro ao consumir mensagens da SQS");
+                    _logger.LogError(ex, "ERRO ao consumir mensagens da SQS. Tipo: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
+                        ex.GetType().Name, ex.Message, ex.StackTrace);
                 }
 
+                _logger.LogInformation("SQS Consumer: Aguardando {PollInterval}ms ate proximo polling...", _pollInterval.TotalMilliseconds);
                 await Task.Delay(_pollInterval, stoppingToken);
             }
+
+            _logger.LogInformation("SQS Consumer: Loop encerrado (stoppingToken cancelado)");
         }
 
         private async Task<bool> ProcessMessageAsync(Message message, CancellationToken stoppingToken)
