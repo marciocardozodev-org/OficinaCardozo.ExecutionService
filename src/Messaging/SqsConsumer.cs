@@ -215,9 +215,11 @@ namespace OficinaCardozo.ExecutionService.Messaging
                     };
 
                     await paymentHandler.HandleAsync(evt);
+                    
+                    // Log de negócio: consumo bem-sucedido
                     _logger.LogInformation(
-                        "[CorrelationId: {CorrelationId}] PaymentConfirmed processado para OS {OsId}",
-                        correlationId, osId);
+                        "ExecutionService consumiu evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId} | Status: Processed",
+                        eventType, correlationId, eventId, osId);
                 }
                 else if (eventType == "OsCanceled")
                 {
@@ -236,9 +238,11 @@ namespace OficinaCardozo.ExecutionService.Messaging
                     };
 
                     await osCanceledHandler.HandleAsync(evt);
+                    
+                    // Log de negócio: consumo bem-sucedido
                     _logger.LogInformation(
-                        "[CorrelationId: {CorrelationId}] OsCanceled processado para OS {OsId}",
-                        correlationId, osId);
+                        "ExecutionService consumiu evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId} | Status: Processed",
+                        eventType, correlationId, eventId, osId);
                 }
                 else
                 {

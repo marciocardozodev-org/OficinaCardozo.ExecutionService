@@ -112,8 +112,8 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
             });
 
             _logger.LogInformation(
-                "[CorrelationId: {CorrelationId}] Evento ExecutionStarted enfileirado no Outbox",
-                evt.CorrelationId);
+                "ExecutionService gravou evento ExecutionStarted no outbox | CorrelationId: {CorrelationId} | EventType: ExecutionStarted | EntityId: {OsId} | JobId: {JobId} | Status: Queued",
+                evt.CorrelationId, evt.OsId, job.Id);
         }
     }
 }
