@@ -1,7 +1,6 @@
-# Teste de pipeline: alteração para validar CI/CD e gitflow
 # ExecutionService
 
-> **Status**: 🚀 SNS→SQS Integration implementada com URLs corretas e Terraform IaC
+> **Status**: ✅ SNS→SQS Integration totalmente funcional | Todos os tópicos entregam mensagens corretamente
 
 ## Fluxo principal
 
@@ -40,6 +39,32 @@ PaymentConfirmed → ExecutionStarted → Diagnosing → ExecutionProgressed →
 
 ## Observação
 - Não há acesso ao banco do OSService, toda comunicação é via eventos.
+
+## Integração SNS→SQS (AWS)
+A integração com AWS SNS e SQS foi implementada com sucesso para entrega confiável de mensagens:
+
+### Tópicos SNS
+- `execution-started`: Publicado quando uma execução é iniciada
+- `execution-finished`: Publicado quando uma execução é finalizada
+- `execution-events`: Publicado para eventos gerais de execução
+
+### Filas SQS
+- `billing-events`: Recebe mensagens de `execution-started` e `execution-finished`
+- `execution-events`: Recebe mensagens de `execution-events`
+
+### Configuração
+- ✅ Subscriptions: ARN endpoints com `RawMessageDelivery=true`
+- ✅ SQS Policies: Permitir SNS enviar mensagens
+- ✅ Terraform IaC: Todos os recursos gerenciados via código
+- ✅ ConfigMap: URLs corretas no formato `sa-east-1.queue.amazonaws.com`
+
+### Teste de Entrega
+Todas as rotas SNS→SQS foram validadas com sucesso:
+```
+execution-started  → billing-events  ✅
+execution-finished → billing-events  ✅
+execution-events   → execution-events ✅
+```
 
 # OficinaCardozo Execution Service
 

@@ -9,9 +9,12 @@ data:
   AWS_REGION: "sa-east-1"
   AWS_DEFAULT_REGION: "sa-east-1"
   # SQS Queue - Input (consome eventos do BillingService)
-  AWS_SQS_QUEUE_BILLING: "https://sa-east-1.queue.amazonaws.com/953082827427/billing-events"
+  # NOTE: Usar formato sa-east-1.queue.amazonaws.com (não sqs.sa-east-1.amazonaws.com)
+  INPUT_QUEUE: "https://sa-east-1.queue.amazonaws.com/953082827427/billing-events"
+  AWS_SQS_QUEUE_BILLING: "https://sqs.sa-east-1.amazonaws.com/953082827427/execution-events"
   AWS_SQS_QUEUE_DLQ_BILLING: "https://sa-east-1.queue.amazonaws.com/953082827427/billing-events-dlq"
   # SNS Topics - Output (publica eventos para OSService)
+  OUTPUT_TOPIC: "arn:aws:sns:sa-east-1:953082827427:execution-events"
   AWS_SNS_TOPIC_EXECUTION_EVENTS: "arn:aws:sns:sa-east-1:953082827427:execution-events"
   # Configurações de polling
   AWS_SQS_MAX_MESSAGES: "10"

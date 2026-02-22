@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OFICINACARDOZO.EXECUTIONSERVICE;
 using OficinaCardozo.ExecutionService.Domain;
 using OficinaCardozo.ExecutionService.Outbox;
 
@@ -16,15 +20,13 @@ namespace OficinaCardozo.ExecutionService.Workers
     /// </summary>
     public class ExecutionWorker : BackgroundService
     {
-        private readonly List<ExecutionJob> _jobs;
-        private readonly IOutboxService _outbox;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ExecutionWorker> _logger;
         private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
 
-        public ExecutionWorker(List<ExecutionJob> jobs, IOutboxService outbox, ILogger<ExecutionWorker> logger)
+        public ExecutionWorker(IServiceScopeFactory scopeFactory, ILogger<ExecutionWorker> logger)
         {
-            _jobs = jobs;
-            _outbox = outbox;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
@@ -36,21 +38,34 @@ namespace OficinaCardozo.ExecutionService.Workers
             {
                 try
                 {
-                    foreach (var job in _jobs)
+                    using var scope = _scopeFactory.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ExecutionDbContext>();
+                    var outbox = scope.ServiceProvider.GetRequiredService<IOutboxService>();
+
+                    // Buscar jobs que precisam ser processados (não finalizados, não falhados, não cancelados)
+                    var jobs = await context.ExecutionJobs
+                        .Where(j => j.Status == ExecutionStatus.Queued 
+                                 || j.Status == ExecutionStatus.Diagnosing 
+                                 || j.Status == ExecutionStatus.Repairing)
+                        .ToListAsync(stoppingToken);
+
+                    foreach (var job in jobs)
                     {
                         if (job.Status == ExecutionStatus.Queued)
                         {
-                            await TransitionToAsync(job, ExecutionStatus.Diagnosing, stoppingToken);
+                            await TransitionToAsync(job, ExecutionStatus.Diagnosing, outbox, stoppingToken);
                         }
                         else if (job.Status == ExecutionStatus.Diagnosing)
                         {
-                            await TransitionToAsync(job, ExecutionStatus.Repairing, stoppingToken);
+                            await TransitionToAsync(job, ExecutionStatus.Repairing, outbox, stoppingToken);
                         }
                         else if (job.Status == ExecutionStatus.Repairing)
                         {
-                            await TransitionToAsync(job, ExecutionStatus.Finished, stoppingToken);
+                            await TransitionToAsync(job, ExecutionStatus.Finished, outbox, stoppingToken);
                         }
                     }
+
+                    await context.SaveChangesAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {
@@ -63,7 +78,7 @@ namespace OficinaCardozo.ExecutionService.Workers
             _logger.LogInformation("ExecutionWorker foi interrompido");
         }
 
-        private async Task TransitionToAsync(ExecutionJob job, ExecutionStatus newStatus, CancellationToken stoppingToken)
+        private async Task TransitionToAsync(ExecutionJob job, ExecutionStatus newStatus, IOutboxService outbox, CancellationToken stoppingToken)
         {
             try
             {
@@ -89,7 +104,7 @@ namespace OficinaCardozo.ExecutionService.Workers
                         DurationSeconds = (job.FinishedAt - job.CreatedAt)?.TotalSeconds
                     });
 
-                    await _outbox.AddEventAsync(new OutboxEvent
+                    await outbox.AddEventAsync(new OutboxEvent
                     {
                         Id = Guid.NewGuid(),
                         EventType = "ExecutionFinished",
@@ -114,7 +129,7 @@ namespace OficinaCardozo.ExecutionService.Workers
                         UpdatedAt = job.UpdatedAt
                     });
 
-                    await _outbox.AddEventAsync(new OutboxEvent
+                    await outbox.AddEventAsync(new OutboxEvent
                     {
                         Id = Guid.NewGuid(),
                         EventType = "ExecutionProgressed",

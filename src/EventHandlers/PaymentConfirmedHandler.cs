@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OFICINACARDOZO.EXECUTIONSERVICE;
 using OficinaCardozo.ExecutionService.Domain;
 using OficinaCardozo.ExecutionService.Inbox;
 using OficinaCardozo.ExecutionService.Outbox;
@@ -21,14 +24,14 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
     {
         private readonly IInboxService _inbox;
         private readonly IOutboxService _outbox;
-        private readonly List<ExecutionJob> _jobs;
+        private readonly ExecutionDbContext _context;
         private readonly ILogger<PaymentConfirmedHandler> _logger;
 
-        public PaymentConfirmedHandler(IInboxService inbox, IOutboxService outbox, List<ExecutionJob> jobs, ILogger<PaymentConfirmedHandler> logger)
+        public PaymentConfirmedHandler(IInboxService inbox, IOutboxService outbox, ExecutionDbContext context, ILogger<PaymentConfirmedHandler> logger)
         {
             _inbox = inbox;
             _outbox = outbox;
-            _jobs = jobs;
+            _context = context;
             _logger = logger;
         }
 
@@ -61,7 +64,10 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
                 evt.CorrelationId);
 
             // Verificar se já existe job para esse OsId
-            if (_jobs.Exists(j => j.OsId == evt.OsId))
+            var existingJob = await _context.ExecutionJobs
+                .FirstOrDefaultAsync(j => j.OsId == evt.OsId);
+            
+            if (existingJob != null)
             {
                 _logger.LogWarning(
                     "[CorrelationId: {CorrelationId}] Job já existe para OS {OsId}. Ignorando.",
@@ -79,7 +85,8 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
                 CreatedAt = DateTime.UtcNow,
                 CorrelationId = evt.CorrelationId
             };
-            _jobs.Add(job);
+            await _context.ExecutionJobs.AddAsync(job);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation(
                 "[CorrelationId: {CorrelationId}] ExecutionJob criado com Id {JobId}, Status: Queued",
@@ -105,8 +112,8 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
             });
 
             _logger.LogInformation(
-                "[CorrelationId: {CorrelationId}] Evento ExecutionStarted enfileirado no Outbox",
-                evt.CorrelationId);
+                "ExecutionService gravou evento ExecutionStarted no outbox | CorrelationId: {CorrelationId} | EventType: ExecutionStarted | EntityId: {OsId} | JobId: {JobId} | Status: Queued",
+                evt.CorrelationId, evt.OsId, job.Id);
         }
     }
 }

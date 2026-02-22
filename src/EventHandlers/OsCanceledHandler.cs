@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OFICINACARDOZO.EXECUTIONSERVICE;
 using OficinaCardozo.ExecutionService.Domain;
 using OficinaCardozo.ExecutionService.Inbox;
 using OficinaCardozo.ExecutionService.Outbox;
@@ -19,14 +22,14 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
     {
         private readonly IInboxService _inbox;
         private readonly IOutboxService _outbox;
-        private readonly List<ExecutionJob> _jobs;
+        private readonly ExecutionDbContext _context;
         private readonly ILogger<OsCanceledHandler> _logger;
 
-        public OsCanceledHandler(IInboxService inbox, IOutboxService outbox, List<ExecutionJob> jobs, ILogger<OsCanceledHandler> logger)
+        public OsCanceledHandler(IInboxService inbox, IOutboxService outbox, ExecutionDbContext context, ILogger<OsCanceledHandler> logger)
         {
             _inbox = inbox;
             _outbox = outbox;
-            _jobs = jobs;
+            _context = context;
             _logger = logger;
         }
 
@@ -59,7 +62,12 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
                 evt.CorrelationId);
 
             // Buscar job ativo para esse OsId
-            var job = _jobs.Find(j => j.OsId == evt.OsId && j.Status != ExecutionStatus.Finished && j.Status != ExecutionStatus.Failed && j.Status != ExecutionStatus.Canceled);
+            var job = await _context.ExecutionJobs
+                .FirstOrDefaultAsync(j => j.OsId == evt.OsId 
+                    && j.Status != ExecutionStatus.Finished 
+                    && j.Status != ExecutionStatus.Failed 
+                    && j.Status != ExecutionStatus.Canceled);
+            
             if (job == null)
             {
                 _logger.LogWarning(
@@ -72,6 +80,7 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
             job.Status = ExecutionStatus.Canceled;
             job.UpdatedAt = DateTime.UtcNow;
             job.LastError = $"Cancelado: {evt.Reason}";
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation(
                 "[CorrelationId: {CorrelationId}] ExecutionJob {JobId} foi cancelado",
@@ -98,8 +107,8 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
             });
 
             _logger.LogInformation(
-                "[CorrelationId: {CorrelationId}] Evento ExecutionCanceled enfileirado no Outbox",
-                evt.CorrelationId);
+                "ExecutionService gravou evento ExecutionCanceled no outbox | CorrelationId: {CorrelationId} | EventType: ExecutionCanceled | EntityId: {OsId} | JobId: {JobId} | Status: Canceled",
+                evt.CorrelationId, evt.OsId, job.Id);
         }
     }
 }

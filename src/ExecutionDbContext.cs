@@ -28,8 +28,13 @@ namespace OFICINACARDOZO.EXECUTIONSERVICE
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.OsId).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.CorrelationId).HasMaxLength(100);
-                entity.Property(e => e.LastError).HasMaxLength(500);
+                entity.Property(e => e.CorrelationId).HasMaxLength(100).IsRequired(false);
+                entity.Property(e => e.LastError).HasMaxLength(500).IsRequired(false);
+                entity.Property(e => e.Status).IsRequired();
+                entity.Property(e => e.Attempt).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.UpdatedAt).IsRequired(false);
+                entity.Property(e => e.FinishedAt).IsRequired(false);
                 entity.HasIndex(e => e.OsId).IsUnique();
             });
 

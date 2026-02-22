@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OficinaCardozo.ExecutionService.EventHandlers;
@@ -19,95 +20,160 @@ namespace OficinaCardozo.ExecutionService.Messaging
     {
         private readonly IAmazonSQS _sqsClient;
         private readonly MessagingConfig _config;
-        private readonly PaymentConfirmedHandler _paymentHandler;
-        private readonly OsCanceledHandler _osCanceledHandler;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<SqsConsumer> _logger;
         private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(10);
 
         public SqsConsumer(
             IAmazonSQS sqsClient,
             MessagingConfig config,
-            PaymentConfirmedHandler paymentHandler,
-            OsCanceledHandler osCanceledHandler,
+            IServiceScopeFactory scopeFactory,
             ILogger<SqsConsumer> logger)
         {
             _sqsClient = sqsClient;
             _config = config;
-            _paymentHandler = paymentHandler;
-            _osCanceledHandler = osCanceledHandler;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("SQS Consumer iniciado. Ouvindo fila: {Queue}", _config.InputQueue);
+            _logger.LogInformation("SQS Consumer ExecuteAsync: Entrando no loop principal");
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    var response = await _sqsClient.ReceiveMessageAsync(
-                        new ReceiveMessageRequest
-                        {
-                            QueueUrl = _config.InputQueue,
-                            MaxNumberOfMessages = 10,
-                            WaitTimeSeconds = 10,
-                            MessageAttributeNames = new List<string> { "All" }
-                        },
-                        stoppingToken);
-
-                    if (response.Messages.Count > 0)
+                    _logger.LogInformation("SQS Consumer: Iniciando polling. QueueUrl: {QueueUrl}, MaxMessages: 10, WaitTime: 10s", _config.InputQueue);
+                    
+                    var request = new ReceiveMessageRequest
                     {
-                        _logger.LogInformation("Recebidas {Count} mensagens da fila", response.Messages.Count);
+                        QueueUrl = _config.InputQueue,
+                        MaxNumberOfMessages = 10,
+                        WaitTimeSeconds = 10,
+                        MessageAttributeNames = new List<string> { "All" }
+                    };
+                    
+                    _logger.LogInformation("SQS Consumer: Chamando ReceiveMessageAsync com request: QueueUrl={QueueUrl}, Max={Max}, Wait={Wait}", 
+                        request.QueueUrl, request.MaxNumberOfMessages, request.WaitTimeSeconds);
+                    
+                    var response = await _sqsClient.ReceiveMessageAsync(request, stoppingToken);
+
+                    _logger.LogInformation("SQS Consumer: ReceiveMessageAsync retornou com sucesso. Messages count: {Count}, Response object null: {IsNull}", 
+                        response?.Messages?.Count ?? 0, response == null);
+
+                    if (response.Messages != null && response.Messages.Count > 0)
+                    {
+                        _logger.LogInformation("Recebidas {Count} mensagens da fila SQS", response.Messages.Count);
 
                         foreach (var message in response.Messages)
                         {
-                            await ProcessMessageAsync(message, stoppingToken);
+                            _logger.LogInformation("SQS Consumer: Processando mensagem {MessageId}...", message.MessageId);
+                            var processed = await ProcessMessageAsync(message, stoppingToken);
+                            _logger.LogInformation("SQS Consumer: ProcessMessageAsync retornou {Result} para MessageId {MessageId}", processed, message.MessageId);
 
-                            // Deletar mensagem após processamento bem-sucedido
-                            await _sqsClient.DeleteMessageAsync(
-                                _config.InputQueue,
-                                message.ReceiptHandle,
-                                stoppingToken);
+                            if (processed)
+                            {
+                                _logger.LogInformation("SQS Consumer: Deletando mensagem {MessageId} da fila...", message.MessageId);
+                                // Deletar mensagem após processamento bem-sucedido
+                                await _sqsClient.DeleteMessageAsync(
+                                    _config.InputQueue,
+                                    message.ReceiptHandle,
+                                    stoppingToken);
+                                _logger.LogInformation("SQS Consumer: Mensagem {MessageId} deletada com sucesso", message.MessageId);
+                            }
+                            else
+                            {
+                                _logger.LogWarning(
+                                    "Mensagem nao processada. Mantendo na fila para reprocesso. MessageId: {MessageId}",
+                                    message.MessageId);
+                            }
                         }
                     }
+                    else
+                    {
+                        _logger.LogInformation("SQS Consumer: Nenhuma mensagem recebida neste polling");
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    _logger.LogInformation("SQS Consumer: Operacao cancelada (shutdown graceful)");
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Erro ao consumir mensagens da SQS");
+                    _logger.LogError(ex, "ERRO ao consumir mensagens da SQS. Tipo: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
+                        ex.GetType().Name, ex.Message, ex.StackTrace);
                 }
 
+                _logger.LogInformation("SQS Consumer: Aguardando {PollInterval}ms ate proximo polling...", _pollInterval.TotalMilliseconds);
                 await Task.Delay(_pollInterval, stoppingToken);
             }
+
+            _logger.LogInformation("SQS Consumer: Loop encerrado (stoppingToken cancelado)");
         }
 
-        private async Task ProcessMessageAsync(Message message, CancellationToken stoppingToken)
+        private async Task<bool> ProcessMessageAsync(Message message, CancellationToken stoppingToken)
         {
             try
             {
-                // SNS envelope via SQS - extrai Message e MessageAttributes
+                var bodyPreview = GetBodyPreview(message.Body, 500);
+                var attributesSummary = GetMessageAttributesSummary(message.MessageAttributes);
+
+                _logger.LogInformation(
+                    "ProcessMessageAsync START: MessageId={MessageId}, Body={Body}, Attributes={Attributes}",
+                    message.MessageId,
+                    bodyPreview,
+                    attributesSummary);
+
+                JsonElement payload;
+                string eventId;
+                string correlationId;
+                string eventType;
+
+                _logger.LogInformation("ProcessMessageAsync: Tentando fazer parse do SnsMessageEnvelope...");
+                // Com RawMessageDelivery=true, a mensagem vem diretamente como JSON (sem envelope SNS)
+                // Tentar detectar o formato
                 var snsMessage = JsonSerializer.Deserialize<SnsMessageEnvelope>(message.Body);
-                if (snsMessage == null)
+                
+                if (snsMessage != null && !string.IsNullOrEmpty(snsMessage.Message))
                 {
-                    _logger.LogWarning("Mensagem SNS inválida recebida");
-                    return;
+                    // Formato: Envelope SNS (RawMessageDelivery=false)
+                    _logger.LogDebug("Mensagem com envelope SNS detectada");
+                    payload = JsonSerializer.Deserialize<JsonElement>(snsMessage.Message);
+                    
+                    eventId = snsMessage.MessageAttributes.ContainsKey("EventId")
+                        ? snsMessage.MessageAttributes["EventId"].Value
+                        : Guid.NewGuid().ToString();
+
+                    correlationId = snsMessage.MessageAttributes.ContainsKey("CorrelationId")
+                        ? snsMessage.MessageAttributes["CorrelationId"].Value
+                        : Guid.NewGuid().ToString();
+
+                    eventType = snsMessage.MessageAttributes.ContainsKey("EventType")
+                        ? snsMessage.MessageAttributes["EventType"].Value
+                        : snsMessage.TopicArn?.Split(':').Last() ?? "Unknown";
                 }
+                else
+                {
+                    // Formato: Raw Message (RawMessageDelivery=true)
+                    _logger.LogInformation("ProcessMessageAsync: Mensagem raw (sem envelope SNS) detectada. Fazendo parse direto do body");
+                    payload = JsonSerializer.Deserialize<JsonElement>(message.Body);
+                    
+                    // Com RawMessageDelivery, os MessageAttributes vêm do SQS Message
+                    eventId = message.MessageAttributes.ContainsKey("EventId")
+                        ? message.MessageAttributes["EventId"].StringValue
+                        : Guid.NewGuid().ToString();
 
-                // Parse do payload JSON
-                var payload = JsonSerializer.Deserialize<JsonElement>(snsMessage.Message);
+                    correlationId = message.MessageAttributes.ContainsKey("CorrelationId")
+                        ? message.MessageAttributes["CorrelationId"].StringValue
+                        : Guid.NewGuid().ToString();
 
-                // Extrai EventId e CorrelationId dos MessageAttributes
-                string eventId = snsMessage.MessageAttributes.ContainsKey("EventId")
-                    ? snsMessage.MessageAttributes["EventId"].Value
-                    : Guid.NewGuid().ToString();
-
-                string correlationId = snsMessage.MessageAttributes.ContainsKey("CorrelationId")
-                    ? snsMessage.MessageAttributes["CorrelationId"].Value
-                    : Guid.NewGuid().ToString();
-
-                string eventType = snsMessage.MessageAttributes.ContainsKey("EventType")
-                    ? snsMessage.MessageAttributes["EventType"].Value
-                    : snsMessage.TopicArn.Split(':').Last();
+                    eventType = message.MessageAttributes.ContainsKey("EventType")
+                        ? message.MessageAttributes["EventType"].StringValue
+                        : "Unknown";
+                }
 
                 _logger.LogInformation(
                     "[CorrelationId: {CorrelationId}] Processando evento {EventType} com EventId {EventId}",
@@ -116,10 +182,27 @@ namespace OficinaCardozo.ExecutionService.Messaging
                 // Rotear para o handler apropriado
                 if (eventType == "PaymentConfirmed")
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var paymentHandler = scope.ServiceProvider.GetRequiredService<PaymentConfirmedHandler>();
+                    
                     var osId = payload.GetProperty("OsId").GetString();
-                    var paymentId = payload.GetProperty("PaymentId").GetString();
-                    var amount = payload.GetProperty("Amount").GetDecimal();
-                    var status = payload.GetProperty("Status").GetString();
+                    
+                    // Compatibilidade com formatos em inglês e português
+                    var paymentId = payload.TryGetProperty("PaymentId", out var paymentIdProp) 
+                        ? paymentIdProp.GetString()
+                        : payload.TryGetProperty("ProviderPaymentId", out var providerIdProp)
+                            ? providerIdProp.GetString()
+                            : null;
+                    
+                    var amount = payload.TryGetProperty("Amount", out var amountProp)
+                        ? amountProp.GetDecimal()
+                        : payload.GetProperty("Valor").GetDecimal();
+                    
+                    // Status pode vir como string ou int
+                    var statusProp = payload.GetProperty("Status");
+                    var status = statusProp.ValueKind == System.Text.Json.JsonValueKind.Number
+                        ? statusProp.GetInt32().ToString()
+                        : statusProp.GetString();
 
                     var evt = new PaymentConfirmedEvent
                     {
@@ -131,13 +214,18 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         CorrelationId = correlationId
                     };
 
-                    await _paymentHandler.HandleAsync(evt);
+                    await paymentHandler.HandleAsync(evt);
+                    
+                    // Log de negócio: consumo bem-sucedido
                     _logger.LogInformation(
-                        "[CorrelationId: {CorrelationId}] PaymentConfirmed processado para OS {OsId}",
-                        correlationId, osId);
+                        "ExecutionService consumiu evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId} | Status: Processed",
+                        eventType, correlationId, eventId, osId);
                 }
                 else if (eventType == "OsCanceled")
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var osCanceledHandler = scope.ServiceProvider.GetRequiredService<OsCanceledHandler>();
+                    
                     var osId = payload.GetProperty("OsId").GetString();
                     var reason = payload.GetProperty("Reason").GetString();
 
@@ -149,10 +237,12 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         CorrelationId = correlationId
                     };
 
-                    await _osCanceledHandler.HandleAsync(evt);
+                    await osCanceledHandler.HandleAsync(evt);
+                    
+                    // Log de negócio: consumo bem-sucedido
                     _logger.LogInformation(
-                        "[CorrelationId: {CorrelationId}] OsCanceled processado para OS {OsId}",
-                        correlationId, osId);
+                        "ExecutionService consumiu evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId} | Status: Processed",
+                        eventType, correlationId, eventId, osId);
                 }
                 else
                 {
@@ -160,11 +250,58 @@ namespace OficinaCardozo.ExecutionService.Messaging
                         "[CorrelationId: {CorrelationId}] Tipo de evento desconhecido: {EventType}",
                         correlationId, eventType);
                 }
+
+                _logger.LogInformation(
+                    "[CorrelationId: {CorrelationId}] Processamento concluído com SUCESSO para evento {EventType}. Retornando true.",
+                    correlationId, eventType);
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar mensagem SQS");
+                var bodyPreview = GetBodyPreview(message.Body, 500);
+                var attributesSummary = GetMessageAttributesSummary(message.MessageAttributes);
+
+                _logger.LogError(
+                    ex,
+                    "ERRO em ProcessMessageAsync: MessageId={MessageId}, ExceptionType={ExceptionType}, Message={ExceptionMessage}, Attributes={Attributes}, BodyPreview={Body}, StackTrace={StackTrace}",
+                    message.MessageId,
+                    ex.GetType().Name,
+                    ex.Message,
+                    attributesSummary,
+                    bodyPreview,
+                    ex.StackTrace);
+
+                return false;
             }
+        }
+
+        private static string GetBodyPreview(string body, int maxLength)
+        {
+            if (string.IsNullOrEmpty(body))
+            {
+                return "<empty>";
+            }
+
+            return body.Length <= maxLength
+                ? body
+                : body.Substring(0, maxLength) + "...";
+        }
+
+        private static string GetMessageAttributesSummary(Dictionary<string, Amazon.SQS.Model.MessageAttributeValue> attributes)
+        {
+            if (attributes == null || attributes.Count == 0)
+            {
+                return "<none>";
+            }
+
+            var parts = new List<string>();
+            foreach (var entry in attributes)
+            {
+                var value = entry.Value?.StringValue ?? entry.Value?.BinaryValue?.ToString() ?? "<null>";
+                parts.Add($"{entry.Key}={value}");
+            }
+
+            return string.Join(", ", parts);
         }
 
         // SNS envelope padrão ao ser entregue via SQS
