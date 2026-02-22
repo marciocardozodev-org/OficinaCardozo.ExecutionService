@@ -73,19 +73,24 @@ namespace OficinaCardozo.ExecutionService.Messaging
             {
                 // Extrai CorrelationId do payload para logs
                 string correlationId = "unknown";
+                string entityId = "unknown";
                 try
                 {
                     var payload = JsonSerializer.Deserialize<JsonElement>(evt.Payload);
                     if (payload.TryGetProperty("CorrelationId", out var corId))
                     {
-                        correlationId = corId.GetString();
+                        correlationId = corId.GetString() ?? "unknown";
+                    }
+                    if (payload.TryGetProperty("OsId", out var osId))
+                    {
+                        entityId = osId.GetString() ?? "unknown";
+                    }
+                    else if (payload.TryGetProperty("JobId", out var jobId))
+                    {
+                        entityId = jobId.GetString() ?? "unknown";
                     }
                 }
-                catch { /* ignore */ }
-
-                _logger.LogInformation(
-                    "[CorrelationId: {CorrelationId}] Publicando evento {EventType} no SNS",
-                    correlationId, evt.EventType);
+                catch { /* ignore parse errors */ }
 
                 var request = new PublishRequest
                 {
@@ -130,18 +135,36 @@ namespace OficinaCardozo.ExecutionService.Messaging
 
                 var response = await _snsClient.PublishAsync(request, stoppingToken);
 
-                // Marcar como publicado
+                // Marcar como publicado ANTES do log de sucesso
                 await outbox.MarkAsPublishedAsync(evt.Id);
 
+                // Log de negócio: sucesso após confirmação real da AWS
                 _logger.LogInformation(
-                    "[CorrelationId: {CorrelationId}] Evento {EventType} publicado com MessageId {MessageId}",
-                    correlationId, evt.EventType, response.MessageId);
+                    "ExecutionService gerou evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId} | MessageId: {MessageId} | Status: Published",
+                    evt.EventType, correlationId, evt.Id, entityId, response.MessageId);
             }
             catch (Exception ex)
             {
+                // Extrai CorrelationId para log de erro
+                string correlationId = "unknown";
+                string entityId = "unknown";
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<JsonElement>(evt.Payload);
+                    if (payload.TryGetProperty("CorrelationId", out var corId))
+                    {
+                        correlationId = corId.GetString() ?? "unknown";
+                    }
+                    if (payload.TryGetProperty("OsId", out var osId))
+                    {
+                        entityId = osId.GetString() ?? "unknown";
+                    }
+                }
+                catch { /* ignore */ }
+
                 _logger.LogError(ex,
-                    "Erro ao publicar evento {EventType} com Id {EventId}",
-                    evt.EventType, evt.Id);
+                    "Erro ao publicar evento {EventType} | CorrelationId: {CorrelationId} | EventId: {EventId} | EntityId: {EntityId}",
+                    evt.EventType, correlationId, evt.Id, entityId);
             }
         }
     }

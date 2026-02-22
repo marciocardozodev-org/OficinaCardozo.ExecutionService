@@ -16,8 +16,43 @@ using OficinaCardozo.ExecutionService.Outbox;
 using OficinaCardozo.ExecutionService.EventHandlers;
 using OficinaCardozo.ExecutionService.Messaging;
 using OficinaCardozo.ExecutionService.Workers;
+using Serilog;
+using Serilog.Formatting.Json;
+using AWS.Logger;
+using AWS.Logger.SeriLog;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configuração do Serilog com CloudWatch
+var awsRegion = Environment.GetEnvironmentVariable("AWS_REGION") ?? "sa-east-1";
+var cloudWatchLogGroup = Environment.GetEnvironmentVariable("CLOUDWATCH_LOG_GROUP") ?? "/eks/prod/executionservice/application";
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+var loggerConfig = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithThreadId()
+    .Enrich.WithProperty("Service", "ExecutionService")
+    .WriteTo.Console(new JsonFormatter());
+
+// Adicionar sink do CloudWatch apenas se não for ambiente de desenvolvimento local
+if (environment != "Development")
+{
+    var awsLoggerConfig = new AWSLoggerConfig(cloudWatchLogGroup)
+    {
+        Region = awsRegion
+    };
+    loggerConfig.WriteTo.AWSSeriLog(awsLoggerConfig);
+}
+
+Log.Logger = loggerConfig.CreateLogger();
+
+try
+{
+    Log.Information("Iniciando ExecutionService");
+
+    var builder = WebApplication.CreateBuilder(args);
+    
+    // Usar Serilog como provider de log
+    builder.Host.UseSerilog();
 
 // Configuração do JWT (chave de exemplo, troque para produção)
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? "chave-super-secreta-para-dev";
@@ -119,6 +154,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Middleware de CorrelationId deve ser o primeiro
+app.UseMiddleware<OficinaCardozo.ExecutionService.API.CorrelationIdMiddleware>();
+
 // Middleware global de tratamento de exceções
 app.UseMiddleware<OFICINACARDOZO.EXECUTIONSERVICE.API.ExceptionHandlingMiddleware>();
 
@@ -127,4 +165,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+Log.Information("ExecutionService configurado e pronto para receber requisições");
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Aplicação encerrada inesperadamente");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

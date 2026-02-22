@@ -107,8 +107,8 @@ namespace OficinaCardozo.ExecutionService.EventHandlers
             });
 
             _logger.LogInformation(
-                "[CorrelationId: {CorrelationId}] Evento ExecutionCanceled enfileirado no Outbox",
-                evt.CorrelationId);
+                "ExecutionService gravou evento ExecutionCanceled no outbox | CorrelationId: {CorrelationId} | EventType: ExecutionCanceled | EntityId: {OsId} | JobId: {JobId} | Status: Canceled",
+                evt.CorrelationId, evt.OsId, job.Id);
         }
     }
 }
